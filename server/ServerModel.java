@@ -17,8 +17,8 @@ public class ServerModel {
 class UserListModel extends AbstractListModel<String> {
 
 	private static final long serialVersionUID = 1L;
-	private ArrayList<String> userList = null;
-	private File userFile = null;
+	ArrayList<String> userList = null;
+	File userFile = null;
 	
 	public UserListModel(File file) {
 		Scanner scan = null;

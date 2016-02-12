@@ -19,8 +19,8 @@ import javax.swing.border.EmptyBorder;
 public class ServerView {
 
 	private JPanel contentPane;
-	private UserListModel listModel;
-	private JList<String> userList;
+	UserListModel listModel;
+	JList<String> userList;
 
 	/**
 	 * Create the frame.
@@ -42,7 +42,7 @@ public class ServerView {
 		JFrame frame = new JFrame();
 		frame.setTitle("Server");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setBounds(100, 100, 450, 300);
+		frame.setBounds(800, 100, 450, 300);
 		
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -68,8 +68,8 @@ public class ServerView {
 		userList.setCellRenderer(new SelectedListCellRenderer());
 				
 		File usersFile = new File(
-			"C:\\Users\\ejshackelford\\java\\workspace\\coms319\\src\\com\\g10\\portfolio1\\resources\\users.txt");
-//			"C:\\Users\\Brody\\Desktop\\iastate\\Spring2016\\ComS319\\Lab2-Swing\\src\\com\\g10\\portfolio1\\resources\\users.txt");
+			"C:\\Users\\ejshackelford\\java\\workspace\\coms319\\src\\com\\g10\\portfolio1\\resources\\server\\users.txt");
+//			"C:\\Users\\Brody\\Desktop\\iastate\\Spring2016\\ComS319\\Lab2-Swing\\src\\com\\g10\\portfolio1\\resources\\server\\users.txt");
 		
 		//Model of the List
 		listModel = new UserListModel(usersFile);

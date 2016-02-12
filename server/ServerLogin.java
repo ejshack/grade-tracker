@@ -11,7 +11,7 @@ import java.util.Scanner;
  */
 public class ServerLogin  {
 	
-	private UserListModel listModel;
+	UserListModel listModel;
 //	private Map<Socket, String> connections;
 	ServerSocket serverSocket;
 	
@@ -53,6 +53,7 @@ public class ServerLogin  {
 			try {
 				System.out.println("Listening for connections on 4444...");
 				clientSocket = serverSocket.accept();
+				System.out.println("Remote Address: " + clientSocket.getInetAddress());
 				Thread t = new Thread(new LoginHandler(clientSocket, listModel));
 				t.start();
 			} catch (IOException e) {
@@ -92,9 +93,9 @@ class LoginHandler implements Runnable {
 //			clientMessage = in.nextLine();
 	//		while(in.hasNextLine())
 	//			sendList.add(in.nextLine());
-			listModel.addElement(name);
 			System.out.println(name);
 			System.out.println(pass);
+			listModel.addElement(name);
 //			System.out.println(clientMessage);
 	//		for(String s : sendList) {
 	//			
