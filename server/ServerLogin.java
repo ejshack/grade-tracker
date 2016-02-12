@@ -18,6 +18,7 @@ public class ServerLogin  {
 	public ServerLogin(UserListModel model) {
 		listModel = model;
 		openLoginSocket();
+		listen();
 	}
 	
 	/**
@@ -35,7 +36,6 @@ public class ServerLogin  {
 			System.out.println("Could not listen on port: 4444");
 			System.exit(-1);
 		}
-		listen();
 	}
 
 	/**
@@ -47,11 +47,13 @@ public class ServerLogin  {
 		
 		// Wait for connections
 		while (true) {
+			
 			Socket clientSocket = null;
 			
 			try {
+				System.out.println("Listening for connections on 4444...");
 				clientSocket = serverSocket.accept();
-				Thread t = new Thread(new LoginHandler(clientSocket));
+				Thread t = new Thread(new LoginHandler(clientSocket, listModel));
 				t.start();
 			} catch (IOException e) {
 				System.out.println("Accept failed: 4444");
@@ -66,37 +68,34 @@ public class ServerLogin  {
 class LoginHandler implements Runnable {
 	// Handles connection to client
 	Socket s;
+	UserListModel listModel;
 	// Username of connected client
-	String name;
+	private String name;
+	private String pass;
 	
-	LoginHandler(Socket s) {
+	LoginHandler(Socket s, UserListModel lm) {
 		this.s = s;
-		Scanner in;
-		try {
-			in = new Scanner(s.getInputStream());
-			name = in.nextLine();
-			in.close();
-			System.out.println(name);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		listModel = lm;
 	}
 	
 	public void run() {
 		// Scanner to read input from client
 		Scanner in;
 	//	ArrayList<String> sendList = new ArrayList<>();
-		String clientMessage;
+//		String clientMessage;
 	//	ArrayList<Socket> socketList;
 		
 		try {
 			in = new Scanner(s.getInputStream());
-			clientMessage = in.nextLine();
+			name = in.nextLine();
+			pass = in.nextLine();
+//			clientMessage = in.nextLine();
 	//		while(in.hasNextLine())
 	//			sendList.add(in.nextLine());
-			// Send messages to selected users
+			listModel.addElement(name);
 			System.out.println(name);
-			System.out.println(clientMessage);
+			System.out.println(pass);
+//			System.out.println(clientMessage);
 	//		for(String s : sendList) {
 	//			
 	//		}

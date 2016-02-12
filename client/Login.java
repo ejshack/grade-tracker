@@ -5,6 +5,10 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.UnknownHostException;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -16,7 +20,12 @@ import javax.swing.border.EmptyBorder;
 
 public class Login extends JFrame{
 
+	private static final long serialVersionUID = 3982136114043671567L;
 	private JPanel contentPane;
+	JTextField username;
+	JTextField password;
+	private String name;
+	private String pass;
 	
 	//Create main screen and run it
 	public static void main(String[] args) {
@@ -59,14 +68,14 @@ public class Login extends JFrame{
 		
 		//Setup username panel with labels
 		JLabel lusername = new JLabel("Username:    ");
-		JTextField username = new JTextField();
+		username = new JTextField();
 		usernamePanel.add(lusername);
 		usernamePanel.add(username);
 		usernamePanel.setLayout(new BoxLayout(usernamePanel, BoxLayout.X_AXIS));
 
 		//Setup password panel with labels
 		JLabel lpassword = new JLabel("Password:    ");
-		JTextField password = new JTextField();
+		password = new JTextField();
 		passwordPanel.add(lpassword);
 		passwordPanel.add(password);
 		passwordPanel.setLayout(new BoxLayout(passwordPanel, BoxLayout.X_AXIS));
@@ -92,8 +101,10 @@ public class Login extends JFrame{
 			
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				// TODO Auto-generated method stub
-				
+				name = username.getText();
+				pass = password.getText();
+				Thread t = new Thread(new LoginRequestor(name, pass));
+				t.start();
 			}
 		});
 		
@@ -102,4 +113,43 @@ public class Login extends JFrame{
 		return buttonPanel;
 	}
 
+}
+
+class LoginRequestor implements Runnable {
+	
+	private String username;
+	private String password;
+	
+	LoginRequestor(String un, String pw) {
+		username = un;
+		password = pw;
+	}
+	
+	public void run() {
+		
+		Socket socket = null;
+		PrintWriter out;
+		
+		try {
+			// attempt connecting to server to login
+			socket = new Socket("localhost", 4444);
+			// wait for server to be ready to receive data
+			Thread.sleep(1000);
+			// open output stream to socket
+			out = new PrintWriter(socket.getOutputStream());
+			out.println(username);
+			out.println(password);
+			out.flush();
+		} catch (InterruptedException e) {
+			System.out.println("Thread interrupted");
+			e.printStackTrace();
+		} catch (UnknownHostException e) {
+			System.out.println("Could not locate host");
+			e.printStackTrace();
+		} catch (IOException e) {
+			System.out.println("Problem connecting to host");
+			e.printStackTrace();
+		}
+
+	}
 }

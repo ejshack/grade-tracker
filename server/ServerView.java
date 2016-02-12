@@ -5,10 +5,7 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.Scanner;
+
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -38,6 +35,7 @@ public class ServerView {
 				}
 			}
 		});
+		new ServerLogin(listModel);
 	}
 	
 	private void setupGUI() {
