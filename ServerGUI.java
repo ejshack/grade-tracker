@@ -8,7 +8,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -25,56 +28,75 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
-public class ServerGUI extends JFrame {
+
+public class ServerGUI {
 
 	private JPanel contentPane;
 	private DataModel listModel;
-	private JList<String> myList;
+	private JList<String> userList;
+//	private Map<Socket, String> connections;
+	ServerSocket serverSocket;
 
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					ServerGUI frame = new ServerGUI();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
+//	/**
+//	 * Launch the application.
+//	 */
+//	public static void main(String[] args) {
+//		EventQueue.invokeLater(new Runnable() {
+//			public void run() {
+//				try {
+//					ServerGUI frame = new ServerGUI();
+//					frame.setVisible(true);
+//				} catch (Exception e) {
+//					e.printStackTrace();
+//				}
+//			}
+//		});
+//	}
 
 	/**
 	 * Create the frame.
 	 */
 	public ServerGUI() {
-		setTitle("Server");
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 450, 300);
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					setupGUI();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		openLoginSocket();
+	}
+	
+	private void setupGUI() {
+		JFrame frame = new JFrame();
+		frame.setTitle("Server");
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setBounds(100, 100, 450, 300);
+		
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		setContentPane(contentPane);
 		contentPane.setLayout(null);
+		frame.setContentPane(contentPane);
 		
 		JLabel lUsers = new JLabel("User List");
 		lUsers.setFont(new Font("Tahoma", Font.BOLD, 16));
 		lUsers.setBounds(49, 23, 77, 31);
 		contentPane.add(lUsers);
 
-		contentPane.add(getMyListPanel());
+		contentPane.add(getUserListPanel());
+		frame.setVisible(true);		
 	}
 	
-	private JPanel getMyListPanel() {
+	private JPanel getUserListPanel() {
 		//Initialize view components
 		JPanel listPanel = new JPanel();
 		listPanel.setBounds(10, 56, 171, 195);
-		myList = new JList<>();
+		userList = new JList<>();
 
 		//During the JList initialization...
-		myList.setCellRenderer(new SelectedListCellRenderer());
+		userList.setCellRenderer(new SelectedListCellRenderer());
 				
 		File usersFile = new File(
 			"C:\\Users\\ejshackelford\\java\\workspace\\coms319\\src\\com\\g10\\portfolio1\\users.txt");
@@ -82,21 +104,21 @@ public class ServerGUI extends JFrame {
 		
 		//Model of the List
 		listModel = new DataModel(usersFile);
-		myList.setModel(listModel);
+		userList.setModel(listModel);
 		
-		listModel.addListDataListener(new MyListDataListener());
+		listModel.addListDataListener(new UserListDataListener());
 		
 		//Add list to scroll pane
-		JScrollPane scrollPane = new JScrollPane(myList);
+		JScrollPane scrollPane = new JScrollPane(userList);
 		listPanel.add(scrollPane);
 		
-		listPanel.add(getMyListButtonsPanel());
+		listPanel.add(getUserListButtonsPanel());
 		listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
 		
 		return listPanel;
 	}
 
-	private JPanel getMyListButtonsPanel() {
+	private JPanel getUserListButtonsPanel() {
 		JPanel buttonPanel = new JPanel();
 //		JButton addButton = new JButton("Add");
 		JButton removeButton = new JButton("Remove");
@@ -117,7 +139,7 @@ public class ServerGUI extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				try {
-					listModel.removeElement(myList.getSelectedIndex()); 
+					listModel.removeElement(userList.getSelectedIndex()); 
 				} catch (Exception e) {}
 			}
 		});
@@ -127,6 +149,123 @@ public class ServerGUI extends JFrame {
 		
 		return buttonPanel;
 	}
+
+	/**
+	 * Open socket to service login requests.
+	 */
+	private void openLoginSocket() {
+		
+//		connections = new HashMap<>();
+		serverSocket = null;
+		
+		try {
+			// Create server socket
+			serverSocket = new ServerSocket(4444);
+		} catch (IOException e) {
+			System.out.println("Could not listen on port: 4444");
+			System.exit(-1);
+		}
+		listen();
+	}
+
+	/**
+	 * Listen for clients to connect and 
+	 * fork new thread for each client.
+	 */
+//	@SuppressWarnings("resource")
+	private void listen() {
+		
+		// Wait for connections
+		while (true) {
+			Socket clientSocket = null;
+			Scanner in;
+			String name;
+			
+			try {
+				clientSocket = serverSocket.accept();
+				in = new Scanner(clientSocket.getInputStream());
+				name = in.nextLine();
+				Thread t = new Thread(new LoginHandler(clientSocket));
+				t.start();
+			} catch (IOException e) {
+				System.out.println("Accept failed: 4444");
+				System.exit(-1);
+			}
+		}
+	}
+}
+
+class LoginHandler implements Runnable {
+	// Handles connection to client
+	Socket s;
+	// Username of connected client
+	String name;
+	
+	LoginHandler(Socket s) {
+		this.s = s;
+		Scanner in;
+		try {
+			in = new Scanner(s.getInputStream());
+			name = in.nextLine();
+			in.close();
+			System.out.println(name);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void run() {
+		// Scanner to read input from client
+		Scanner in;
+	//	ArrayList<String> sendList = new ArrayList<>();
+		String clientMessage;
+	//	ArrayList<Socket> socketList;
+		
+		try {
+			in = new Scanner(s.getInputStream());
+			clientMessage = in.nextLine();
+	//		while(in.hasNextLine())
+	//			sendList.add(in.nextLine());
+			// Send messages to selected users
+			System.out.println(name);
+			System.out.println(clientMessage);
+	//		for(String s : sendList) {
+	//			
+	//		}
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
+//  ****** GOOD WAY TO PURPOSELY KILL A QUICK USE THREAD ********
+//	
+//	class MyThread extends Thread
+//	{
+//	  volatile boolean finished = false;
+//
+//	  public void stopMe()
+//	  {
+//	    finished = true;
+//	  }
+//
+//	  public void run()
+//	  {
+//	    while (!finished)
+//	    {
+//	      //do dirty work
+//	    }
+//	  }
+//	}
+	
+	//void printSocketInfo(Socket s) {
+	//	System.out.print("Socket on Server " + Thread.currentThread() + " ");
+	//	System.out.print("Server socket Local Address: " + s.getLocalAddress()
+	//			+ ":" + s.getLocalPort());
+	//	System.out.println("  Server socket Remote Address: "
+	//			+ s.getRemoteSocketAddress());
+	//}
 }
 
 /**
@@ -135,19 +274,19 @@ public class ServerGUI extends JFrame {
  */
 @SuppressWarnings("serial")
 class DataModel extends AbstractListModel<String> {
-	private ArrayList<String> myList = null;
-	private File myFile = null;
+	private ArrayList<String> userList = null;
+	private File userFile = null;
 	
 	public DataModel(File file) {
 		Scanner scan = null;
-		myList = new ArrayList<>();
-		myFile = file;
+		userList = new ArrayList<>();
+		userFile = file;
 		
 		// scans the file and adds users to list
 		try {
 			scan = new Scanner(file);
 			while(scan.hasNextLine())
-				myList.add(scan.nextLine());
+				userList.add(scan.nextLine());
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -157,26 +296,26 @@ class DataModel extends AbstractListModel<String> {
 	
 	@Override
 	public String getElementAt(int arg0) {
-		return myList.get(arg0);
+		return userList.get(arg0);
 	}
 
 	@Override
 	public int getSize() {
-		return myList.size();
+		return userList.size();
 	}
 	
 	public void addElement (String arg) {
-		myList.add(arg);
-		this.fireIntervalAdded(this,myList.size()-1, myList.size()-1);
+		userList.add(arg);
+		this.fireIntervalAdded(this,userList.size()-1, userList.size()-1);
 	}
 	
 	public void removeElement (int index) {
-		myList.remove(index);
-		this.fireIntervalRemoved(this, myList.size()-1, myList.size()-1);
+		userList.remove(index);
+		this.fireIntervalRemoved(this, userList.size()-1, userList.size()-1);
 	}
 	
 	public File getFile() {
-		return myFile;
+		return userFile;
 	}
 }
 
@@ -185,7 +324,7 @@ class DataModel extends AbstractListModel<String> {
  * initiates correct action accordingly.
  * 
  */
-class MyListDataListener implements ListDataListener {
+class UserListDataListener implements ListDataListener {
 
 	/**
 	 * Adds user to users file when added to list.
