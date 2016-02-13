@@ -9,3 +9,8 @@ testuser8
 testuser9
 testuser10
 testnewuser
+pwtest
+relativepath
+relpath
+newpath
+muchfaster

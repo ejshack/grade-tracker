@@ -39,9 +39,9 @@ public class ServerView {
 	 */
 	private void setupGUI() {
 		JFrame frame = new JFrame();
-		frame.setTitle("Server");
+		frame.setTitle("Grade Tracker | Server");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setBounds(800, 100, 205, 300);
+		frame.setBounds(800, 100, 300, 300);
 		
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -50,7 +50,8 @@ public class ServerView {
 		
 		JLabel lUsers = new JLabel("User List");
 		lUsers.setFont(new Font("Tahoma", Font.BOLD, 16));
-		lUsers.setBounds(49, 23, 77, 31);
+//		lUsers.setBounds(49, 23, 77, 31);
+		lUsers.setBounds(100, 23, 77, 31);
 		contentPane.add(lUsers);
 
 		contentPane.add(getUserListPanel());
@@ -60,14 +61,14 @@ public class ServerView {
 	private JPanel getUserListPanel() {
 		//Initialize view components
 		JPanel listPanel = new JPanel();
-		listPanel.setBounds(10, 56, 171, 195);
+		listPanel.setBounds(10, 56, 265, 195);
 		userList = new JList<>();
 
 		//During the JList initialization...
 		userList.setCellRenderer(new SelectedListCellRenderer());
 				
-		File userFile = new File(
-			"C:\\Users\\ejshackelford\\java\\workspace\\coms319\\src\\com\\g10\\portfolio1\\resources\\server\\users.txt");
+		File userFile = new File("src\\com\\g10\\portfolio1\\resources\\server\\users.txt");
+//			"C:\\Users\\ejshackelford\\java\\workspace\\coms319\\src\\com\\g10\\portfolio1\\resources\\server\\users.txt");
 //			"C:\\Users\\Brody\\Desktop\\iastate\\Spring2016\\ComS319\\Lab2-Swing\\src\\com\\g10\\portfolio1\\resources\\server\\users.txt");
 		
 		//Model of the List
@@ -94,9 +95,8 @@ public class ServerView {
 		removeButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				try {
-					listModel.removeElement(userList.getSelectedIndex()); 
-				} catch (Exception e) {}
+				listModel.removeElement(userList.getSelectedIndex());
+//				Files.deleteIfExists(Paths.get("src\\com\\g10\\portfolio1\\resources\\server\\" + name + ".txt"));
 			}
 		});
 		buttonPanel.add(removeButton);

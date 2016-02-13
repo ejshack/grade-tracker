@@ -7,6 +7,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
@@ -104,7 +105,7 @@ class LoginHandler implements Runnable {
 				System.out.println("Already current user");
 				// TODO - validate user
 				//		- send error if not
-				//		- start file send if so
+				//		- start sending file if so
 				//		- start client handler
 			} else {
 				createClient();
@@ -116,20 +117,23 @@ class LoginHandler implements Runnable {
 		}
 	}
 	
+	/**
+	 * Adds user to user list and creates 
+	 * their resource file on the server.
+	 */
 	private void createClient() {
 		
 		List<String> lines = Arrays.asList(name, pass);
 		
-		// Used to append to file
-		//Files.write(file, lines, Charset.forName("UTF-8"), StandardOpenOption.APPEND);
-		
 		listModel.addElement(name);
 		
 		try {
-			Path file = Paths.get(
-					"C:\\Users\\ejshackelford\\java\\workspace\\coms319\\src\\com\\g10\\portfolio1\\resources\\server\\" + name + ".txt");
+			Path file = Paths.get("src\\com\\g10\\portfolio1\\resources\\server\\" + name + ".txt");
+//					"C:\\Users\\ejshackelford\\java\\workspace\\coms319\\src\\com\\g10\\portfolio1\\resources\\server\\" + name + ".txt");
 //			"C:\\Users\\Brody\\Desktop\\iastate\\Spring2016\\ComS319\\Lab2-Swing\\src\\com\\g10\\portfolio1\\resources\\server\\users.txt");name + ".txt");
 			Files.write(file, lines, Charset.forName("UTF-8"));
+			// Used to append to file
+			//Files.write(file, lines, Charset.forName("UTF-8"), StandardOpenOption.APPEND);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -137,10 +141,10 @@ class LoginHandler implements Runnable {
 	
 	private boolean isCurrentUser() {
 		
-		int count = listModel.getSize();
+		ArrayList<String> users = listModel.getList();
 		
-		for(int i = 0; i < count; ++count) {
-			if(name.equals(listModel.getElementAt(i)))
+		for (int i = 0; i < users.size(); ++i) {
+			if (name.equals(users.get(i)))
 				return true;
 		}
 		return false;
