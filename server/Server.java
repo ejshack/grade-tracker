@@ -1,12 +1,13 @@
-package com.g10.portfolio1;
+package com.g10.portfolio1.server;
 
-public class ServerStart {
+
+public class Server {
 
 	/**
 	 * Launch the server application.
 	 */
 	public static void main(String[] args) {
-		new ServerGUI();
+		new ServerView();
 	}
 
 }
