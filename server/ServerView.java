@@ -1,6 +1,5 @@
 package com.g10.portfolio1.server;
 
-import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -21,20 +20,14 @@ public class ServerView {
 	private JPanel contentPane;
 	UserListModel listModel;
 	JList<String> userList;
+	File userFile;
 
 	/**
 	 * Create the frame.
 	 */
 	public ServerView() {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					setupGUI();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
+		
+		setupGUI();
 		new ServerLogin(listModel);
 	}
 	
@@ -42,7 +35,7 @@ public class ServerView {
 		JFrame frame = new JFrame();
 		frame.setTitle("Server");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setBounds(800, 100, 450, 300);
+		frame.setBounds(800, 100, 205, 300);
 		
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -67,12 +60,12 @@ public class ServerView {
 		//During the JList initialization...
 		userList.setCellRenderer(new SelectedListCellRenderer());
 				
-		File usersFile = new File(
+		userFile = new File(
 			"C:\\Users\\ejshackelford\\java\\workspace\\coms319\\src\\com\\g10\\portfolio1\\resources\\server\\users.txt");
 //			"C:\\Users\\Brody\\Desktop\\iastate\\Spring2016\\ComS319\\Lab2-Swing\\src\\com\\g10\\portfolio1\\resources\\server\\users.txt");
 		
 		//Model of the List
-		listModel = new UserListModel(usersFile);
+		listModel = new UserListModel(userFile);
 		userList.setModel(listModel);
 		
 		listModel.addListDataListener(new UserListDataListener());
@@ -89,22 +82,10 @@ public class ServerView {
 
 	private JPanel getUserListButtonsPanel() {
 		JPanel buttonPanel = new JPanel();
-//		JButton addButton = new JButton("Add");
 		JButton removeButton = new JButton("Remove");
-		
-		//action listener for add button
-//		addButton.addActionListener(new ActionListener() {
-//			
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				String response = JOptionPane.showInputDialog(null, "What is the new company?", "Enter new company name", JOptionPane.QUESTION_MESSAGE);
-//				listModel.addElement(response);
-//			}
-//		});
 		
 		//action listener for remove button
 		removeButton.addActionListener(new ActionListener() {
-
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				try {
@@ -112,8 +93,6 @@ public class ServerView {
 				} catch (Exception e) {}
 			}
 		});
-		
-//		buttonPanel.add(addButton);
 		buttonPanel.add(removeButton);
 		
 		return buttonPanel;

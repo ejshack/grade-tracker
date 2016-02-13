@@ -12,10 +12,10 @@ import java.util.Scanner;
 public class ServerLogin  {
 	
 	UserListModel listModel;
-//	private Map<Socket, String> connections;
 	ServerSocket serverSocket;
 	
 	public ServerLogin(UserListModel model) {
+		
 		listModel = model;
 		openLoginSocket();
 		listen();
@@ -26,7 +26,6 @@ public class ServerLogin  {
 	 */
 	private void openLoginSocket() {
 		
-//		connections = new HashMap<>();
 		serverSocket = null;
 		
 		try {
@@ -42,7 +41,6 @@ public class ServerLogin  {
 	 * Listen for clients to connect and 
 	 * fork new thread for each client.
 	 */
-//	@SuppressWarnings("resource")
 	private void listen() {
 		
 		// Wait for connections
@@ -53,7 +51,6 @@ public class ServerLogin  {
 			try {
 				System.out.println("Listening for connections on 4444...");
 				clientSocket = serverSocket.accept();
-				System.out.println("Remote Address: " + clientSocket.getInetAddress());
 				Thread t = new Thread(new LoginHandler(clientSocket, listModel));
 				t.start();
 			} catch (IOException e) {
@@ -82,24 +79,16 @@ class LoginHandler implements Runnable {
 	public void run() {
 		// Scanner to read input from client
 		Scanner in;
-	//	ArrayList<String> sendList = new ArrayList<>();
-//		String clientMessage;
-	//	ArrayList<Socket> socketList;
 		
 		try {
 			in = new Scanner(s.getInputStream());
 			name = in.nextLine();
 			pass = in.nextLine();
-//			clientMessage = in.nextLine();
-	//		while(in.hasNextLine())
-	//			sendList.add(in.nextLine());
+
 			System.out.println(name);
 			System.out.println(pass);
+			
 			listModel.addElement(name);
-//			System.out.println(clientMessage);
-	//		for(String s : sendList) {
-	//			
-	//		}
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -126,12 +115,5 @@ class LoginHandler implements Runnable {
 //	    }
 //	  }
 //	}
-	
-	//void printSocketInfo(Socket s) {
-	//	System.out.print("Socket on Server " + Thread.currentThread() + " ");
-	//	System.out.print("Server socket Local Address: " + s.getLocalAddress()
-	//			+ ":" + s.getLocalPort());
-	//	System.out.println("  Server socket Remote Address: "
-	//			+ s.getRemoteSocketAddress());
-	//}
+
 }
