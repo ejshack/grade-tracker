@@ -15,6 +15,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
@@ -22,10 +23,10 @@ public class Login extends JFrame{
 
 	private static final long serialVersionUID = 3982136114043671567L;
 	private JPanel contentPane;
-	JTextField username;
-	JTextField password;
+	private JTextField username;
+	private JPasswordField password;
 	private String name;
-	private String pass;
+	private char[] pass;
 	
 	//Create main screen and run it
 	public static void main(String[] args) {
@@ -75,7 +76,11 @@ public class Login extends JFrame{
 
 		//Setup password panel with labels
 		JLabel lpassword = new JLabel("Password:    ");
-		password = new JTextField();
+		password = new JPasswordField();
+		
+		// If want to show password when typing, use this with listener to a "Show Password" check box
+//		password.setEchoChar((char)0);
+		
 		passwordPanel.add(lpassword);
 		passwordPanel.add(password);
 		passwordPanel.setLayout(new BoxLayout(passwordPanel, BoxLayout.X_AXIS));
@@ -102,7 +107,7 @@ public class Login extends JFrame{
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				name = username.getText();
-				pass = password.getText();
+				pass = password.getPassword();
 				Thread t = new Thread(new LoginRequestor(name, pass));
 				t.start();
 			}
@@ -118,9 +123,9 @@ public class Login extends JFrame{
 class LoginRequestor implements Runnable {
 	
 	private String username;
-	private String password;
+	private char[] password;
 	
-	LoginRequestor(String un, String pw) {
+	LoginRequestor(String un, char[] pw) {
 		username = un;
 		password = pw;
 	}

@@ -14,13 +14,16 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 
-
+/**
+ * View implementation for the
+ * server's MVC pattern.
+ *
+ */
 public class ServerView {
 
 	private JPanel contentPane;
-	UserListModel listModel;
-	JList<String> userList;
-	File userFile;
+	private UserListModel listModel;
+	private JList<String> userList;
 
 	/**
 	 * Create the frame.
@@ -31,6 +34,9 @@ public class ServerView {
 		new ServerLogin(listModel);
 	}
 	
+	/**
+	 * Initializes GUI contents and fills frame.
+	 */
 	private void setupGUI() {
 		JFrame frame = new JFrame();
 		frame.setTitle("Server");
@@ -60,7 +66,7 @@ public class ServerView {
 		//During the JList initialization...
 		userList.setCellRenderer(new SelectedListCellRenderer());
 				
-		userFile = new File(
+		File userFile = new File(
 			"C:\\Users\\ejshackelford\\java\\workspace\\coms319\\src\\com\\g10\\portfolio1\\resources\\server\\users.txt");
 //			"C:\\Users\\Brody\\Desktop\\iastate\\Spring2016\\ComS319\\Lab2-Swing\\src\\com\\g10\\portfolio1\\resources\\server\\users.txt");
 		

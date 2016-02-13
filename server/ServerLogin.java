@@ -3,6 +3,12 @@ package com.g10.portfolio1.server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -45,12 +51,14 @@ public class ServerLogin  {
 		
 		// Wait for connections
 		while (true) {
-			
+			// Represents clients socket on server's side
 			Socket clientSocket = null;
 			
 			try {
 				System.out.println("Listening for connections on 4444...");
+				// Blocks until accepts connection
 				clientSocket = serverSocket.accept();
+				// Forks a thread to handle new/returning client
 				Thread t = new Thread(new LoginHandler(clientSocket, listModel));
 				t.start();
 			} catch (IOException e) {
@@ -62,12 +70,16 @@ public class ServerLogin  {
 
 }
 
-
+/**
+ * Thread to handle new and returning
+ * clients when logging in.
+ *
+ */
 class LoginHandler implements Runnable {
 	// Handles connection to client
 	Socket s;
 	UserListModel listModel;
-	// Username of connected client
+
 	private String name;
 	private String pass;
 	
@@ -88,11 +100,50 @@ class LoginHandler implements Runnable {
 			System.out.println(name);
 			System.out.println(pass);
 			
-			listModel.addElement(name);
+			if(isCurrentUser()) {
+				System.out.println("Already current user");
+				// TODO - validate user
+				//		- send error if not
+				//		- start file send if so
+				//		- start client handler
+			} else {
+				createClient();
+				// TODO - start client handler
+			}
 			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private void createClient() {
+		
+		List<String> lines = Arrays.asList(name, pass);
+		
+		// Used to append to file
+		//Files.write(file, lines, Charset.forName("UTF-8"), StandardOpenOption.APPEND);
+		
+		listModel.addElement(name);
+		
+		try {
+			Path file = Paths.get(
+					"C:\\Users\\ejshackelford\\java\\workspace\\coms319\\src\\com\\g10\\portfolio1\\resources\\server\\" + name + ".txt");
+//			"C:\\Users\\Brody\\Desktop\\iastate\\Spring2016\\ComS319\\Lab2-Swing\\src\\com\\g10\\portfolio1\\resources\\server\\users.txt");name + ".txt");
+			Files.write(file, lines, Charset.forName("UTF-8"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private boolean isCurrentUser() {
+		
+		int count = listModel.getSize();
+		
+		for(int i = 0; i < count; ++count) {
+			if(name.equals(listModel.getElementAt(i)))
+				return true;
+		}
+		return false;
 	}
 	
 	

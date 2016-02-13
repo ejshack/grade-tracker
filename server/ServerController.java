@@ -30,7 +30,7 @@ class UserListDataListener implements ListDataListener {
 	 * Adds user to users file when added to list.
 	 */
 	@Override
-	synchronized public void contentsChanged(ListDataEvent event) {
+	public void contentsChanged(ListDataEvent event) {
 		PrintWriter pw = null;
 		UserListModel l = (UserListModel) event.getSource();
 		l.getElementAt(event.getIndex0());
@@ -74,7 +74,7 @@ class SelectedListCellRenderer extends DefaultListCellRenderer {
 	private static final long serialVersionUID = 1L;
 
 	@Override
-    synchronized public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+    public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
         Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
         if (isSelected) {
             c.setBackground(Color.YELLOW);

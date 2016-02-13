@@ -1,6 +1,7 @@
 package com.g10.portfolio1.server;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -11,13 +12,16 @@ public class ServerModel {
 }
 
 /**
- * Data model for the user list.
+ * Data model for the user list. Model 
+ * implementation for server's MVC pattern.
  *
  */
 class UserListModel extends AbstractListModel<String> {
 
 	private static final long serialVersionUID = 1L;
+	// Stores usernames of registered users
 	ArrayList<String> userList = null;
+	// File to store registered user's usernames
 	File userFile = null;
 	
 	public UserListModel(File file) {
@@ -30,7 +34,7 @@ class UserListModel extends AbstractListModel<String> {
 			scan = new Scanner(file);
 			while(scan.hasNextLine())
 				userList.add(scan.nextLine());
-		} catch (Exception e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
 			scan.close();
