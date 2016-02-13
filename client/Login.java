@@ -27,6 +27,7 @@ public class Login extends JFrame{
 	private JPasswordField password;
 	private String name;
 	private char[] pass;
+	private boolean connected;
 	
 	//Create main screen and run it
 	public static void main(String[] args) {
@@ -43,6 +44,7 @@ public class Login extends JFrame{
 	}
 	
 	public Login() {
+		connected = false;
 		//Set Frame and main panel to contentPane
 		setTitle("Grade Tracker | Login");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -59,6 +61,10 @@ public class Login extends JFrame{
 		
 		contentPane.add(mainPanel, BorderLayout.CENTER);
 		
+	}
+	
+	public boolean isConnected() {
+		return connected;
 	}
 	
 	//Create input panel for logging in
