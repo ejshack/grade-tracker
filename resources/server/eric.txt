@@ -1,0 +1,26 @@
+ComS319
+Lab 50
+Lab1 5
+Lab2 5
+Lab3 5
+Lab4 5
+Lab5 5
+Lab6 5
+Lab7 5
+Lab8 5
+Lab9 5
+Lab10 5
+Portfolio 45
+Portfolio1 10 
+Portfolio2 15 
+Portfolio3 20 
+Attendance 5
+
+MIS301
+Quiz 10
+Quiz1 2
+Quiz2 2
+Quiz3 2
+Quiz4 2
+Quiz5 2
+Homework 20
