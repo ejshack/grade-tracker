@@ -5,13 +5,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
-import java.util.List;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
@@ -21,11 +15,13 @@ import java.util.Scanner;
 public class ServerLogin  {
 	
 	UserListModel listModel;
+	PassListModel passModel;
 	ServerSocket serverSocket;
 	
-	public ServerLogin(UserListModel model) {
+	public ServerLogin(UserListModel uModel, PassListModel pModel) {
 		
-		listModel = model;
+		listModel = uModel;
+		passModel = pModel;
 		openLoginSocket();
 		listen();
 	}
@@ -62,7 +58,7 @@ public class ServerLogin  {
 				// Blocks until accepts connection
 				clientSocket = serverSocket.accept();
 				// Forks a thread to handle new/returning client
-				Thread t = new Thread(new LoginHandler(clientSocket, listModel));
+				Thread t = new Thread(new LoginHandler(clientSocket, listModel, passModel));
 				t.start();
 			} catch (IOException e) {
 				System.out.println("Accept failed: 4444");
@@ -82,14 +78,16 @@ class LoginHandler implements Runnable {
 	// Handles connection to client
 	Socket s;
 	UserListModel listModel;
+	PassListModel passModel;
 
 	private String name;
 	private String pass;
 	private String loginStatus;
 	
-	LoginHandler(Socket s, UserListModel lm) {
+	LoginHandler(Socket s, UserListModel lm, PassListModel pm) {
 		this.s = s;
 		listModel = lm;
+		passModel = pm;
 	}
 	
 	public void run() {
@@ -119,11 +117,6 @@ class LoginHandler implements Runnable {
 				//   to list, adds credentials to password file
 				createClient();
 			}
-			
-			
-				// TODO - start client handler
-			
-			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -157,36 +150,27 @@ class LoginHandler implements Runnable {
 	 */
 	private String validateUser() {
 		
-		File passFile = new File("src\\com\\g10\\portfolio1\\resources\\server\\passwords.txt");
-		Scanner lineIn = null;
-		Scanner wordIn = null;
 		// login status reply, auto-register if not currently a user
 		String status = "REGISTERED";
+		ArrayList<String> userList = listModel.getList();
 		
-		try {
-			// line of password file containing a username and password
-			lineIn = new Scanner(passFile);
-			
-			while(lineIn.hasNextLine()) {
-				
-				wordIn = new Scanner(lineIn.nextLine());
-				// checks attempts to match username
-				if(wordIn.next().equals(name)) {
-					// sets reply to user whether password is match or not
-					if(wordIn.next().equals(pass)) {
-						status = "ACCEPTED";
-					} else {
-						status = "REJECTED";
-					}
-				}
+		int count = userList.size();
+		int index = -1;
+		
+		// search user list for name
+		for(int i = 0; i < count; ++i) {
+			if(name.equals(userList.get(i))) {
+				index = i;
+				break;
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if(wordIn != null)
-				wordIn.close();
-			if(lineIn != null)
-				lineIn.close();
+		}
+		
+		// if found, check if password is correct
+		if(index >= 0) {
+			if(pass.equals(passModel.getElementAt(index)))
+				status = "ACCEPTED";
+			else
+				status = "REJECTED";
 		}
 		return status;
 	}
@@ -196,42 +180,18 @@ class LoginHandler implements Runnable {
 	 * their resource file on the server.
 	 */
 	private void createClient() {
-		// username and password
-		List<String> lines = Arrays.asList(name + " " + pass);
-		// adds username to list
+
+		// adds username and password to lists
 		listModel.addElement(name);
+		passModel.addElement(pass);
 		
 		try {
 			// creates resource file for user if not already created
 			File userRes = new File("src\\com\\g10\\portfolio1\\resources\\server\\" + name + ".txt");
 			userRes.createNewFile();
-			// adds user credentials to password file
-			Path file = Paths.get("src\\com\\g10\\portfolio1\\resources\\server\\passwords.txt");
-			Files.write(file, lines, Charset.forName("UTF-8"), StandardOpenOption.APPEND);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
-	
-	
-//  ****** GOOD WAY TO PURPOSELY KILL A QUICK USE THREAD ********
-//	
-//	class MyThread extends Thread
-//	{
-//	  volatile boolean finished = false;
-//
-//	  public void stopMe()
-//	  {
-//	    finished = true;
-//	  }
-//
-//	  public void run()
-//	  {
-//	    while (!finished)
-//	    {
-//	      //do dirty work
-//	    }
-//	  }
-//	}
 
 }

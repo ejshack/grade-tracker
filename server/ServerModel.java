@@ -113,3 +113,95 @@ class UserListModel extends AbstractListModel<String> {
 		return userList;
 	}
 }
+
+/**
+ * Data model for the password list. Model 
+ * implementation for server's MVC pattern.
+ *
+ */
+class PassListModel extends AbstractListModel<String> {
+
+	private static final long serialVersionUID = 1L;
+	// Stores passwords of registered users
+	ArrayList<String> passList = null;
+	// File to store registered user's passwords
+	File passFile = null;
+	
+	public PassListModel(File file) {
+		Scanner scan = null;
+		passList = new ArrayList<>();
+		passFile = file;
+		
+		// scans the file and adds passwords to list
+		try {
+			scan = new Scanner(file);
+			while(scan.hasNextLine())
+				passList.add(scan.nextLine());
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			scan.close();
+		}
+	}
+	
+	/**
+	 * Returns password string at given index
+	 * @param arg0
+	 *   index in list of user to return
+	 */
+	@Override
+	synchronized public String getElementAt(int arg0) {
+		return passList.get(arg0);
+	}
+
+	/**
+	 * Returns the number of passwords
+	 */
+	@Override
+	synchronized public int getSize() {
+		return passList.size();
+	}
+	
+	/**
+	 * Adds a password to the list
+	 * @param arg
+	 *   password to add
+	 * @return
+	 *   true if pass was added, false otherwise
+	 */
+	synchronized public boolean addElement (String arg) {
+		boolean passAdded = false;
+		if(passList.add(arg))
+			passAdded = true;
+		this.fireIntervalAdded(this,passList.size()-1, passList.size()-1);
+		return passAdded;
+	}
+	
+	/**
+	 * Removes a password from the list
+	 * @param index
+	 *   index of password to remove
+	 */
+	synchronized public void removeElement (int index) {
+		passList.remove(index);
+		this.fireIntervalRemoved(this, passList.size()-1, passList.size()-1);
+	}
+	
+	/**
+	 * Returns the file of passwords
+	 * @return
+	 *   file containing all passwords
+	 */
+	synchronized public File getFile() {
+		return passFile;
+	}
+	
+	/**
+	 * List of passwords
+	 * @return
+	 *   list of passwords
+	 */
+	synchronized public ArrayList<String> getList() {
+		return passList;
+	}
+}

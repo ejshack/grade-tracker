@@ -29,18 +29,21 @@ public class Login {
 	private char[] pass;
 	private String loginStatus = "REJECTED";
 	Socket socket;
-	private boolean userStatus = false;
+	private boolean connected;
+	private JFrame frame;
+	private LoginStatus lStatus;
 	
 	/**
 	 * Interface for client login
 	 * @param s
 	 *   socket for connecting to server
 	 */
-	public Login(Socket s) {
+	public Login(Socket s, LoginStatus l) {
 
 		socket = s;
+		lStatus = l;
 		
-		JFrame frame = setupGUI();
+		frame = setupGUI();
 		frame.setVisible(true);
 	}
 	
@@ -50,6 +53,7 @@ public class Login {
 	 *   JFrame containing login GUI
 	 */
 	private JFrame setupGUI() {
+		connected = false;
 		//Set Frame and main panel to contentPane
 		JFrame frame = new JFrame();
 		frame.setTitle("Grade Tracker | Login");
@@ -69,6 +73,18 @@ public class Login {
 		
 		return frame;
 	}
+	
+	/**
+	 * Returns whether the user has been authenticated
+	 * with the server or not.
+	 * 
+	 * @return
+	 *   true if authentication successful, false otherwise
+	 */
+	public boolean isConnected() {
+		return connected;
+	}
+	
 	//Create input panel for logging in
 	private JPanel getInputPanel() {
 		JPanel inputPanel = new JPanel();
@@ -119,13 +135,15 @@ public class Login {
 				
 				// Exits login if successful, displays message if newly registered or wrong credentials
 				if(loginStatus.equals("ACCEPTED")) {
-					userStatus = true;
-					System.exit(0);
+					connected = true;
+					lStatus.setStatus(true);
+					frame.dispose();
 				} else if(loginStatus.equals("REGISTERED")) {
 					JOptionPane.showMessageDialog(null, "Thanks for Registering! Enjoy Grade-Tracker!", 
 							"Registration Successful",  JOptionPane.INFORMATION_MESSAGE);
-					userStatus = true;
-					System.exit(0);
+					connected = true;
+					lStatus.setStatus(true);
+					frame.dispose();
 				} else {
 					JOptionPane.showMessageDialog(null, "Incorrect username or password", 
 							"Invalid Credentials Error",  JOptionPane.ERROR_MESSAGE);
@@ -176,17 +194,6 @@ public class Login {
 			e.printStackTrace();
 		}
 		in.close();
-	}
-	
-	/**
-	 * Returns whether the user has been authenticated
-	 * with the server or not.
-	 * 
-	 * @return
-	 *   true if authentication successful, false otherwise
-	 */
-	public boolean getUserStatus() {
-		return userStatus;
 	}
 
 }
