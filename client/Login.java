@@ -2,54 +2,62 @@ package com.g10.portfolio1.client;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Scanner;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
-public class Login extends JFrame{
+public class Login {
 
-	private static final long serialVersionUID = 3982136114043671567L;
 	private JPanel contentPane;
 	private JTextField username;
 	private JPasswordField password;
 	private String name;
 	private char[] pass;
+	private String loginStatus = "REJECTED";
+	Socket socket;
+	private boolean userStatus = false;
 	
-	//Create main screen and run it
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					Login frame = new Login();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
+	/**
+	 * Interface for client login
+	 * @param s
+	 *   socket for connecting to server
+	 */
+	public Login(Socket s) {
+
+		socket = s;
+		
+		JFrame frame = setupGUI();
+		frame.setVisible(true);
 	}
 	
-	public Login() {
+	/**
+	 * Sets up the GUI for the client login.
+	 * @return
+	 *   JFrame containing login GUI
+	 */
+	private JFrame setupGUI() {
 		//Set Frame and main panel to contentPane
-		setTitle("Grade Tracker | Login");
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 400, 200);
+		JFrame frame = new JFrame();
+		frame.setTitle("Grade Tracker | Login");
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setBounds(100, 100, 400, 200);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		setContentPane(contentPane);
+		frame.setContentPane(contentPane);
 		contentPane.setLayout(new BorderLayout());
 
 		JPanel mainPanel = new JPanel();
@@ -59,8 +67,8 @@ public class Login extends JFrame{
 		
 		contentPane.add(mainPanel, BorderLayout.CENTER);
 		
+		return frame;
 	}
-	
 	//Create input panel for logging in
 	private JPanel getInputPanel() {
 		JPanel inputPanel = new JPanel();
@@ -77,9 +85,6 @@ public class Login extends JFrame{
 		//Setup password panel with labels
 		JLabel lpassword = new JLabel("Password:    ");
 		password = new JPasswordField();
-		
-		// If want to show password when typing, use this with listener to a "Show Password" check box
-//		password.setEchoChar((char)0);
 		
 		passwordPanel.add(lpassword);
 		passwordPanel.add(password);
@@ -106,10 +111,25 @@ public class Login extends JFrame{
 			
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
+				
 				name = username.getText();
 				pass = password.getPassword();
-				Thread t = new Thread(new LoginRequestor(name, pass));
-				t.start();
+				
+				requestLogin();
+				
+				// Exits login if successful, displays message if newly registered or wrong credentials
+				if(loginStatus.equals("ACCEPTED")) {
+					userStatus = true;
+					System.exit(0);
+				} else if(loginStatus.equals("REGISTERED")) {
+					JOptionPane.showMessageDialog(null, "Thanks for Registering! Enjoy Grade-Tracker!", 
+							"Registration Successful",  JOptionPane.INFORMATION_MESSAGE);
+					userStatus = true;
+					System.exit(0);
+				} else {
+					JOptionPane.showMessageDialog(null, "Incorrect username or password", 
+							"Invalid Credentials Error",  JOptionPane.ERROR_MESSAGE);
+				}
 			}
 		});
 		
@@ -118,36 +138,19 @@ public class Login extends JFrame{
 		return buttonPanel;
 	}
 
-}
-
-class LoginRequestor implements Runnable {
-	
-	private String username;
-	private char[] password;
-	
-	LoginRequestor(String un, char[] pw) {
-		username = un;
-		password = pw;
-	}
-	
-	public void run() {
+	/**
+	 * Passes username and password to
+	 * server in attempt to login.
+	 */
+	private void requestLogin() {
 		
-		Socket socket = null;
 		PrintWriter out;
 		
 		try {
-			// attempt connecting to server to login
-			socket = new Socket("localhost", 4444);
-			// wait for server to be ready to receive data
-			Thread.sleep(1000);
-			// open output stream to socket
 			out = new PrintWriter(socket.getOutputStream());
-			out.println(username);
-			out.println(password);
+			out.println(name);
+			out.println(pass);
 			out.flush();
-		} catch (InterruptedException e) {
-			System.out.println("Thread interrupted");
-			e.printStackTrace();
 		} catch (UnknownHostException e) {
 			System.out.println("Could not locate host");
 			e.printStackTrace();
@@ -155,6 +158,35 @@ class LoginRequestor implements Runnable {
 			System.out.println("Problem connecting to host");
 			e.printStackTrace();
 		}
-
+		
+		waitForValidation();
 	}
+	
+	/**
+	 * Waits for login validation from server.
+	 */
+	private void waitForValidation() {
+		
+		Scanner in = null;
+		
+		try {
+			in = new Scanner(socket.getInputStream());
+			loginStatus = in.nextLine();
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+		in.close();
+	}
+	
+	/**
+	 * Returns whether the user has been authenticated
+	 * with the server or not.
+	 * 
+	 * @return
+	 *   true if authentication successful, false otherwise
+	 */
+	public boolean getUserStatus() {
+		return userStatus;
+	}
+
 }

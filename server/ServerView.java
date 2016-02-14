@@ -68,8 +68,6 @@ public class ServerView {
 		userList.setCellRenderer(new SelectedListCellRenderer());
 				
 		File userFile = new File("src\\com\\g10\\portfolio1\\resources\\server\\users.txt");
-//			"C:\\Users\\ejshackelford\\java\\workspace\\coms319\\src\\com\\g10\\portfolio1\\resources\\server\\users.txt");
-//			"C:\\Users\\Brody\\Desktop\\iastate\\Spring2016\\ComS319\\Lab2-Swing\\src\\com\\g10\\portfolio1\\resources\\server\\users.txt");
 		
 		//Model of the List
 		listModel = new UserListModel(userFile);
@@ -96,7 +94,6 @@ public class ServerView {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				listModel.removeElement(userList.getSelectedIndex());
-//				Files.deleteIfExists(Paths.get("src\\com\\g10\\portfolio1\\resources\\server\\" + name + ".txt"));
 			}
 		});
 		buttonPanel.add(removeButton);

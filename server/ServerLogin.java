@@ -1,13 +1,15 @@
 package com.g10.portfolio1.server;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
@@ -83,6 +85,7 @@ class LoginHandler implements Runnable {
 
 	private String name;
 	private String pass;
+	private String loginStatus;
 	
 	LoginHandler(Socket s, UserListModel lm) {
 		this.s = s;
@@ -100,17 +103,26 @@ class LoginHandler implements Runnable {
 
 			System.out.println(name);
 			System.out.println(pass);
+			// validates user credentials and returns response
+			loginStatus = validateUser();
+			// sends response to client
+			informClient(loginStatus);
 			
-			if(isCurrentUser()) {
-				System.out.println("Already current user");
-				// TODO - validate user
-				//		- send error if not
-				//		- start sending file if so
-				//		- start client handler
-			} else {
+			if(loginStatus.equals("ACCEPTED")) {
+				
+				
+				// TODO - start sending file if so
+			
+				
+			} else if(loginStatus.equals("REGISTERED")){
+				// creates client resource file, adds username
+				//   to list, adds credentials to password file
 				createClient();
-				// TODO - start client handler
 			}
+			
+			
+				// TODO - start client handler
+			
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -118,36 +130,87 @@ class LoginHandler implements Runnable {
 	}
 	
 	/**
-	 * Adds user to user list and creates 
-	 * their resource file on the server.
+	 * Sends client validation response.
+	 * 
+	 * @param status
+	 *   validation response for client
 	 */
-	private void createClient() {
+	private void informClient(String status) {
 		
-		List<String> lines = Arrays.asList(name, pass);
-		
-		listModel.addElement(name);
+		PrintWriter out;
 		
 		try {
-			Path file = Paths.get("src\\com\\g10\\portfolio1\\resources\\server\\" + name + ".txt");
-//					"C:\\Users\\ejshackelford\\java\\workspace\\coms319\\src\\com\\g10\\portfolio1\\resources\\server\\" + name + ".txt");
-//			"C:\\Users\\Brody\\Desktop\\iastate\\Spring2016\\ComS319\\Lab2-Swing\\src\\com\\g10\\portfolio1\\resources\\server\\users.txt");name + ".txt");
-			Files.write(file, lines, Charset.forName("UTF-8"));
-			// Used to append to file
-			//Files.write(file, lines, Charset.forName("UTF-8"), StandardOpenOption.APPEND);
+			out = new PrintWriter(s.getOutputStream());
+			out.println(status);
+			out.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	private boolean isCurrentUser() {
+	/**
+	 * Checks password file to see if already a current
+	 * user and attempts to validate credentials.
+	 * 
+	 * @return
+	 *   Validation response to send to user
+	 */
+	private String validateUser() {
 		
-		ArrayList<String> users = listModel.getList();
+		File passFile = new File("src\\com\\g10\\portfolio1\\resources\\server\\passwords.txt");
+		Scanner lineIn = null;
+		Scanner wordIn = null;
+		// login status reply, auto-register if not currently a user
+		String status = "REGISTERED";
 		
-		for (int i = 0; i < users.size(); ++i) {
-			if (name.equals(users.get(i)))
-				return true;
+		try {
+			// line of password file containing a username and password
+			lineIn = new Scanner(passFile);
+			
+			while(lineIn.hasNextLine()) {
+				
+				wordIn = new Scanner(lineIn.nextLine());
+				// checks attempts to match username
+				if(wordIn.next().equals(name)) {
+					// sets reply to user whether password is match or not
+					if(wordIn.next().equals(pass)) {
+						status = "ACCEPTED";
+					} else {
+						status = "REJECTED";
+					}
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if(wordIn != null)
+				wordIn.close();
+			if(lineIn != null)
+				lineIn.close();
 		}
-		return false;
+		return status;
+	}
+	
+	/**
+	 * Adds user to user list and creates 
+	 * their resource file on the server.
+	 */
+	private void createClient() {
+		// username and password
+		List<String> lines = Arrays.asList(name + " " + pass);
+		// adds username to list
+		listModel.addElement(name);
+		
+		try {
+			// creates resource file for user if not already created
+			File userRes = new File("src\\com\\g10\\portfolio1\\resources\\server\\" + name + ".txt");
+			userRes.createNewFile();
+			// adds user credentials to password file
+			Path file = Paths.get("src\\com\\g10\\portfolio1\\resources\\server\\passwords.txt");
+			Files.write(file, lines, Charset.forName("UTF-8"), StandardOpenOption.APPEND);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	
