@@ -20,7 +20,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
-public class Login {
+public class ClientLogin {
 
 	private JPanel contentPane;
 	private JTextField username;
@@ -38,7 +38,7 @@ public class Login {
 	 * @param s
 	 *   socket for connecting to server
 	 */
-	public Login(Socket s, LoginStatus l) {
+	public ClientLogin(Socket s, LoginStatus l) {
 
 		socket = s;
 		lStatus = l;
@@ -131,22 +131,26 @@ public class Login {
 				name = username.getText();
 				pass = password.getPassword();
 				
+				lStatus.setName(name);
 				requestLogin();
 				
 				// Exits login if successful, displays message if newly registered or wrong credentials
 				if(loginStatus.equals("ACCEPTED")) {
 					connected = true;
 					lStatus.setStatus(true);
-					frame.dispose();
+					lStatus.setNew(false);
+					frame.setVisible(false);
 				} else if(loginStatus.equals("REGISTERED")) {
 					JOptionPane.showMessageDialog(null, "Thanks for Registering! Enjoy Grade-Tracker!", 
 							"Registration Successful",  JOptionPane.INFORMATION_MESSAGE);
 					connected = true;
 					lStatus.setStatus(true);
-					frame.dispose();
+					frame.setVisible(false);
 				} else {
 					JOptionPane.showMessageDialog(null, "Incorrect username or password", 
 							"Invalid Credentials Error",  JOptionPane.ERROR_MESSAGE);
+					username.setText("");
+					password.setText("");
 				}
 			}
 		});
@@ -193,7 +197,6 @@ public class Login {
 		} catch(IOException e) {
 			e.printStackTrace();
 		}
-		in.close();
 	}
 
 }

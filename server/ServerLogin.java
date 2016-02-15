@@ -12,7 +12,7 @@ import java.util.Scanner;
  * Handles client login requests.
  *
  */
-public class ServerLogin  {
+public class ServerLogin implements Runnable  {
 	
 	UserListModel listModel;
 	PassListModel passModel;
@@ -22,15 +22,9 @@ public class ServerLogin  {
 		
 		listModel = uModel;
 		passModel = pModel;
-		openLoginSocket();
-		listen();
-	}
-	
-	/**
-	 * Open socket to service login requests.
-	 */
-	private void openLoginSocket() {
 		
+//		openLoginSocket();
+		// Open socket to service login requests
 		serverSocket = null;
 		
 		try {
@@ -40,13 +34,31 @@ public class ServerLogin  {
 			System.out.println("Could not listen on port: 4444");
 			System.exit(-1);
 		}
+//		listen();
 	}
+	
+	/**
+	 * Open socket to service login requests.
+	 */
+//	private void openLoginSocket() {
+//		
+//		serverSocket = null;
+//		
+//		try {
+//			// Create server socket
+//			serverSocket = new ServerSocket(4444);
+//		} catch (IOException e) {
+//			System.out.println("Could not listen on port: 4444");
+//			System.exit(-1);
+//		}
+//	}
 
 	/**
 	 * Listen for clients to connect and 
 	 * fork new thread for each client.
 	 */
-	private void listen() {
+//	private void listen() {
+	public void run() {
 		
 		// Wait for connections
 		while (true) {
@@ -54,7 +66,7 @@ public class ServerLogin  {
 			Socket clientSocket = null;
 			
 			try {
-				System.out.println("Listening for connections on 4444...");
+				System.out.println("Listening for login attempts on 4444...");
 				// Blocks until accepts connection
 				clientSocket = serverSocket.accept();
 				// Forks a thread to handle new/returning client
@@ -83,47 +95,50 @@ class LoginHandler implements Runnable {
 	private String name;
 	private String pass;
 	private String loginStatus;
+	private boolean loginComplete;
 	
 	LoginHandler(Socket s, UserListModel lm, PassListModel pm) {
 		this.s = s;
 		listModel = lm;
 		passModel = pm;
+		loginComplete = false;
 	}
 	
 	public void run() {
-		// Scanner to read input from client
-		Scanner in;
-		// Clients resource file
-		File resFile;
 		
-		try {
-			in = new Scanner(s.getInputStream());
-			name = in.nextLine();
-			pass = in.nextLine();
-
-			System.out.println(name);
-			System.out.println(pass);
-			// validates user credentials and returns response
-			loginStatus = validateUser();
-			// sends response to client
-			informClient(loginStatus);
+		// Stop handler after client has logged in
+		while(!loginComplete) {
+//		while(!loginStatus.equals("REJECTED")) {
+			// Scanner to read input from client
+			Scanner in;
 			
-			if(loginStatus.equals("ACCEPTED")) {
+			try {
+				in = new Scanner(s.getInputStream());
+				name = in.nextLine();
+				pass = in.nextLine();
+	
+				System.out.println(name);
+				System.out.println(pass);
 				
-//				Thread transferThread 
-//				resFile = new File("src\\com\\g10\\portfolio1\\server\\" + name + ".txt");
+				// validates user credentials and returns response
+				loginStatus = validateUser();
+				// sends response to client
+				informClient(loginStatus);
 				
-				// TODO - start sending file if so
-			
-				
-			} else if(loginStatus.equals("REGISTERED")){
 				// creates client resource file, adds username
 				//   to list, adds credentials to password file
-				createClient();
+				if(loginStatus.equals("REGISTERED")){
+					
+					createClient();
+					loginComplete = true;
+				} else if(loginStatus.equals("ACCEPTED")) {
+					loginComplete = true;
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
+//		loginComplete = true;
 	}
 	
 	/**
@@ -198,19 +213,4 @@ class LoginHandler implements Runnable {
 		}
 	}
 
-}
-
-class FileTransfer implements Runnable {
-	
-	Socket socket;
-	File resFile;
-	
-	FileTransfer(Socket s, File f) {
-		socket = s;
-		resFile = f;
-	}
-	
-	public void run() {
-		
-	}
 }
