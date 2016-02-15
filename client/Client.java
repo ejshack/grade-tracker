@@ -1,6 +1,6 @@
 package com.g10.portfolio1.client;
 
-
+import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 
@@ -14,6 +14,10 @@ public class Client {
 		//Try to connect with the server
 		Socket s = null;
 		LoginStatus loginStatus = new LoginStatus();
+
+		// Temp file for users session
+		File tempFile = null;
+		String username;
 		
 		try {
 			s = new Socket("localhost", 4444);
@@ -34,25 +38,39 @@ public class Client {
 		
 		// Waits for user to receive authentication from the server
 		while(!loginStatus.getStatus());
+
+		username = loginStatus.getName();
+		
+		// Create temp file, prefix must be at least 3 letters long so append "temp" either way
+		try {
+			tempFile = File.createTempFile(loginStatus.getName()+"temp", ".tmp");
+			tempFile.deleteOnExit();
+			loginStatus.setUserTemp(tempFile);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		// Start file receive if returning client
+		if(!loginStatus.isNew()) {
+			Thread resReceive = new Thread(new ClientFileReceive(tempFile, username));
+			resReceive.start();
+		}
 		
 		//Show main screen
 		System.out.println("Logged-in - Main Screen Here");
-		// Kill login thread
+		Thread saveTempThread = new Thread(new ClientFileSend(tempFile, username));
+		saveTempThread.start();
 
 		//Set socket for main screen and setVisible to true
 
-	}
-
-	public static boolean sendToServer() {
-		// TODO add functionality
-		return false;
 	}
 
 }
 
 class LoginThread extends Thread {
 
-	private Socket mySocket = null;
+	Socket mySocket = null;
+
 	private LoginStatus loginStatus;
 	
 	LoginThread(Socket s, LoginStatus l) {
@@ -61,20 +79,8 @@ class LoginThread extends Thread {
 	}
 
 	public void run() {
-		new Login(mySocket, loginStatus);
+
+		new ClientLogin(mySocket, loginStatus);
 	}
 
-}
-
-class LoginStatus {
-	
-	volatile boolean status = false;
-	
-	synchronized public boolean getStatus() {
-		return status;
-	}
-	
-	synchronized public void setStatus(boolean s) {
-		status = s;
-	}
 }
