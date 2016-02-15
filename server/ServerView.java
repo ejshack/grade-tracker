@@ -33,14 +33,11 @@ public class ServerView {
 	public ServerView() {
 		
 		setupGUI();
-<<<<<<< HEAD
-		new ServerLogin(listModel, passModel);
-=======
 		
 		// Starts server login listener
 		Thread loginListener = new Thread(new ServerLogin(listModel, passModel));
 		loginListener.start();
->>>>>>> send-receive
+
 	}
 	
 	/**

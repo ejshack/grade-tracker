@@ -3,9 +3,6 @@ pat
 brody
 jeff
 ryan
-<<<<<<< HEAD
-=======
 badger
 jesse
 jake
->>>>>>> send-receive
