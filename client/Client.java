@@ -6,9 +6,9 @@ public class Client {
 
 	public static void main(String[] args) {
 		// Try to connect with the server
+		// Show login screen
 		LoginThread loginThread = new LoginThread();
 
-		// Show login screen
 		
 		// Kill login thread
 		// Show main screen
