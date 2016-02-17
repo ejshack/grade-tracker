@@ -9,8 +9,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.swing.BoxLayout;
+import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -19,6 +21,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ListDataListener;
 
 public class MainScreen extends JFrame {
 
@@ -27,7 +30,7 @@ public class MainScreen extends JFrame {
 	private JComboBox<String> courseCB;
 	private DefaultComboBoxModel<String> semCBModel;
 	private DefaultComboBoxModel<String> courseCBModel;
-	
+	private HashMap<String, ArrayList<String>> hmSemCourses;
 
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -90,8 +93,10 @@ public class MainScreen extends JFrame {
 				String response = JOptionPane.showInputDialog(null, "What is the new semester?", "Enter new semester",
 						JOptionPane.QUESTION_MESSAGE);
 				if ((response != null) && !(response.equals(""))) {
+					hmSemCourses.put(response, new ArrayList<>());
 					semCBModel.addElement(response);
 					courseCB.setEnabled(true);
+					semCBModel.setSelectedItem(response);
 				}
 			}
 		});
@@ -103,9 +108,14 @@ public class MainScreen extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				if (semCBModel.getSize() != 0) {
 					semCBModel.removeElementAt(semesterCB.getSelectedIndex());
-					courseCBModel.removeAllElements();
-					if (semCBModel.getSize() == 0)
+					
+					hmSemCourses.remove(semesterCB.getSelectedItem());
+					
+					if (semCBModel.getSize() == 0) {
+						courseCBModel = new DefaultComboBoxModel<>();
+						courseCB.setModel(courseCBModel);
 						courseCB.setEnabled(false);
+					}
 				}
 			}
 		});
@@ -117,8 +127,12 @@ public class MainScreen extends JFrame {
 				if(courseCB.isEnabled()) {
 					String response = JOptionPane.showInputDialog(null, "What is the new course?", "Enter new course",
 							JOptionPane.QUESTION_MESSAGE);
-					if ((response != null) && !(response.equals("")))
+					if ((response != null) && !(response.equals(""))) {
+						hmSemCourses.get(semCBModel.getSelectedItem()).add(response);
 						courseCBModel.addElement(response);
+						courseCB.setModel(courseCBModel);
+						courseCBModel.setSelectedItem(response);
+					}
 				}
 			}
 		});
@@ -129,10 +143,13 @@ public class MainScreen extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (courseCBModel.getSize() != 0) {
+					hmSemCourses.get(semesterCB.getSelectedItem()).remove(semesterCB.getSelectedIndex());
 					courseCBModel.removeElementAt(courseCB.getSelectedIndex());
 				}
 			}
 		});
+		
+		getSemAndCourses();
 		
 		// Add to button panel
 		buttonsPanel.add(addSemesterButton);
@@ -141,6 +158,14 @@ public class MainScreen extends JFrame {
 		buttonsPanel.add(remCourseButton);
 
 		return buttonsPanel;
+	}
+
+	private void getSemAndCourses() {
+		hmSemCourses = new HashMap<>();
+		
+		//Get semester and course information from server
+		//TODO server calls
+		
 	}
 
 	private JPanel getCourseSelectorPanel() {
@@ -163,23 +188,24 @@ public class MainScreen extends JFrame {
 		// semesterList = requestSemesterList();
 
 		for (String element : semesterList)
-			semesterCB.addItem(element);
+			semCBModel.addElement(element);
 
-//		semesterCB.addItemListener(new ItemListener() {
-//
-//			@Override
-//			public void itemStateChanged(ItemEvent e) {
-//				// Request course list from selected semester
-//				ArrayList<String> courseList = new ArrayList<>();
-//
-//				// courseList = requestCourseList(semesterCB.getSelectedItem());
-//
-//				for (String element : courseList)
-//					courseCB.addItem(element);
-//
-//				courseCB.setEnabled(true);
-//			}
-//		});
+		semesterCB.addItemListener(new ItemListener() {
+			
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				String semester = (String) semesterCB.getSelectedItem();
+				if(semester != null) {
+					ArrayList<String> courses = hmSemCourses.get(semester);
+					courseCBModel = new DefaultComboBoxModel<>(courses.toArray(new String[courses.size()]));
+				} else {
+					courseCBModel = new DefaultComboBoxModel<>();
+					courseCB.setEnabled(false);
+				}
+				courseCB.setModel(courseCBModel);
+			}
+			
+		});
 
 		selectorPanel.add(semLabel);
 		selectorPanel.add(semesterCB);
