@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.swing.BoxLayout;
-import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -20,8 +19,10 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ListDataListener;
+import javax.swing.table.DefaultTableModel;
 
 public class MainScreen extends JFrame {
 
@@ -30,6 +31,10 @@ public class MainScreen extends JFrame {
 	private JComboBox<String> courseCB;
 	private DefaultComboBoxModel<String> semCBModel;
 	private DefaultComboBoxModel<String> courseCBModel;
+	private JTable assignTable;
+	private DefaultTableModel tableModel;
+	
+	//Key - semester, Value - list of courses
 	private HashMap<String, ArrayList<String>> hmSemCourses;
 
 	public static void main(String[] args) {
@@ -58,9 +63,55 @@ public class MainScreen extends JFrame {
 		JPanel mainPanel = new JPanel();
 		mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 		mainPanel.add(getCoursePanel());
+		mainPanel.add(getAssignmentPanel());
 
 		contentPane.add(mainPanel, BorderLayout.CENTER);
 
+	}
+
+	private JPanel getAssignmentPanel() {
+		
+		JPanel assignPanel = new JPanel();
+		assignPanel.setLayout(new BorderLayout());		
+		assignPanel.add(new JLabel("<html><p>Assignments:</p></html>"), BorderLayout.PAGE_START);
+		
+		tableModel = createTableModel();
+		assignTable = new JTable(tableModel);
+		
+		JScrollPane tableScroll = new JScrollPane(assignTable);
+		
+		assignPanel.add(tableScroll);
+		
+		assignPanel.add(getAssignmentButtonsPanel(), BorderLayout.PAGE_END);
+		assignTable.setEnabled(false);
+		
+		return assignPanel;
+	}
+
+	private JPanel getAssignmentButtonsPanel() {
+		
+		JPanel assignBP = new JPanel();
+		assignBP.setLayout(new FlowLayout());
+		
+		JButton addAssign = new JButton("Add assignment");
+		JButton editAssign = new JButton("Edit assignment");
+		JButton remAssign = new JButton("Remove assignment");
+		
+		//Add listeners for each button
+		
+		assignBP.add(addAssign);
+		assignBP.add(editAssign);
+		assignBP.add(remAssign);
+		
+		return assignBP;
+	}
+
+	private DefaultTableModel createTableModel() {
+		DefaultTableModel tm;
+		String[] colHeaders = {"Title", "Category", "Date",  "Points Earned", "Points Possible"};		
+		tm = new DefaultTableModel(colHeaders, 10);
+		
+		return tm;
 	}
 
 	private JPanel getCoursePanel() {
@@ -115,6 +166,8 @@ public class MainScreen extends JFrame {
 						courseCBModel = new DefaultComboBoxModel<>();
 						courseCB.setModel(courseCBModel);
 						courseCB.setEnabled(false);
+						assignTable.clearSelection();
+						assignTable.setEnabled(false);
 					}
 				}
 			}
@@ -132,6 +185,7 @@ public class MainScreen extends JFrame {
 						courseCBModel.addElement(response);
 						courseCB.setModel(courseCBModel);
 						courseCBModel.setSelectedItem(response);
+						assignTable.setEnabled(true);
 					}
 				}
 			}
@@ -145,6 +199,9 @@ public class MainScreen extends JFrame {
 				if (courseCBModel.getSize() != 0) {
 					hmSemCourses.get(semesterCB.getSelectedItem()).remove(semesterCB.getSelectedIndex());
 					courseCBModel.removeElementAt(courseCB.getSelectedIndex());
+				} else {
+					assignTable.clearSelection();
+					assignTable.setEnabled(false);
 				}
 			}
 		});
@@ -204,7 +261,22 @@ public class MainScreen extends JFrame {
 				}
 				courseCB.setModel(courseCBModel);
 			}
+		});
+		
+		courseCB.addItemListener(new ItemListener() {
 			
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				String course = (String) courseCB.getSelectedItem();
+				if(course != null) {
+					//load assignment information
+					//TODO
+				} else {
+					assignTable.clearSelection();
+					assignTable.setEnabled(false);
+				}
+					
+			}
 		});
 
 		selectorPanel.add(semLabel);
