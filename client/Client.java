@@ -1,11 +1,7 @@
 package com.g10.portfolio1.client;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import javax.swing.JOptionPane;
 
@@ -18,8 +14,6 @@ public class Client {
 		Socket s = null;
 		LoginStatus loginStatus = new LoginStatus();
 
-		// Temp file for users session
-		File tempFile = null;
 		String username;
 		
 		try {
@@ -44,27 +38,8 @@ public class Client {
 
 		username = loginStatus.getName();
 		
-		// Create temp file, prefix must be at least 3 letters long so append "temp" either way
-		try {
-			Path temp = Files.createTempDirectory(
-					Paths.get("src\\com\\g10\\portfolio1\\resources\\client"), loginStatus.getName());
-			tempFile = new File(temp.toString());
-			tempFile.deleteOnExit();
-			loginStatus.setUserTemp(tempFile);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		// Start file receive if returning client
-		if(!loginStatus.isNew()) {
-			Thread resReceive = new Thread(new ClientFileReceive(tempFile, username));
-			resReceive.start();
-		}
-		
 		//Show main screen
 		System.out.println("Logged-in - Main Screen Here");
-//		Thread saveTempThread = new Thread(new ClientFileSend(tempFile, username));
-//		saveTempThread.start();
 
 		//Set socket for main screen and setVisible to true
 

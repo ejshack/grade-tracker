@@ -86,14 +86,37 @@ class UserListModel extends AbstractListModel<String> {
 	synchronized public String removeElement (int index) {
 		String userRemoved = userList.remove(index);
 		this.fireIntervalRemoved(this, userList.size()-1, userList.size()-1);
-		try {
-			FileUtils.deleteDirectory();
-			Files.deleteIfExists(Paths.get("src\\com\\g10\\portfolio1\\resources\\server\\" + userRemoved));
-		} catch (IOException e) {
-			System.out.println("User: " + userRemoved + " resource folder not found. Could not be removed.");
-			e.printStackTrace();
-		}
+//		try {
+		// deletes user folder and all subcontents
+		File userFolder = new File("src\\com\\g10\\portfolio1\\resources\\server\\" + userRemoved);
+		removeUserFolder(userFolder);
+		userFolder.delete();
+//			Files.deleteIfExists(Paths.get("src\\com\\g10\\portfolio1\\resources\\server\\" + userRemoved));
+//		} catch (IOException e) {
+//			System.out.println("User: " + userRemoved + " resource folder not found. Could not be removed.");
+//			e.printStackTrace();
+//		}
 		return userRemoved;
+	}
+	
+	/**
+	 * Recursively remove all files and folders
+	 * of a user when deleting user.
+	 * @param folder
+	 *   user resource folder to remove
+	 */
+	private static void removeUserFolder(File folder) {
+	    if (folder.isDirectory()) {
+	        File[] files = folder.listFiles();
+	        if (files != null && files.length > 0) {
+	            for (File f : files) {
+	                removeUserFolder(f);
+	            }
+	        }
+	        folder.delete();
+	    } else {
+	    	folder.delete();
+	    }
 	}
 	
 	/**

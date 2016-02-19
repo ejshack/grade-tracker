@@ -74,7 +74,7 @@ class ServerTransferHandler implements Runnable {
 		// Stop thread when complete file is sent
 		if(!sendComplete) {
 			// Scanners to read file
-			Scanner readFile = null;
+//			Scanner readFile = null;
 			// PrintWriter to send file
 			PrintWriter sendFile;
 						
@@ -86,7 +86,7 @@ class ServerTransferHandler implements Runnable {
 				System.out.println("Client name received");
 				resFolder = new File("src\\com\\g10\\portfolio1\\resources\\server\\" + clientName);
 				
-				readFile = new Scanner(resFolder);
+//				readFile = new Scanner(resFolder);
 				sendFile = new PrintWriter(clientSocket.getOutputStream());
 
 				// send all files in resource folder
@@ -99,7 +99,7 @@ class ServerTransferHandler implements Runnable {
 				e.printStackTrace();
 			} finally {
 				sendComplete = true;
-				readFile.close();
+//				readFile.close();
 			}
 		}
 	}
