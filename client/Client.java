@@ -63,8 +63,8 @@ public class Client {
 		
 		//Show main screen
 		System.out.println("Logged-in - Main Screen Here");
-		Thread saveTempThread = new Thread(new ClientFileSend(tempFile, username));
-		saveTempThread.start();
+//		Thread saveTempThread = new Thread(new ClientFileSend(tempFile, username));
+//		saveTempThread.start();
 
 		//Set socket for main screen and setVisible to true
 

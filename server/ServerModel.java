@@ -87,6 +87,7 @@ class UserListModel extends AbstractListModel<String> {
 		String userRemoved = userList.remove(index);
 		this.fireIntervalRemoved(this, userList.size()-1, userList.size()-1);
 		try {
+			FileUtils.deleteDirectory();
 			Files.deleteIfExists(Paths.get("src\\com\\g10\\portfolio1\\resources\\server\\" + userRemoved));
 		} catch (IOException e) {
 			System.out.println("User: " + userRemoved + " resource folder not found. Could not be removed.");
