@@ -19,7 +19,6 @@ public class ServerReceiveListener implements Runnable {
 	// Socket used to pass resource file to client
 	ServerSocket serverSocket;
 	Socket clientSocket;
-	File resfile;
 	
 	public ServerReceiveListener() {
 		serverSocket = null;
@@ -89,7 +88,7 @@ class ServerReceiveHandler implements Runnable {
 				clientName = readStream.nextLine();
 				System.out.println("Client name received");
 				
-				resFile = new File("src\\com\\g10\\portfolio1\\resources\\server\\" + clientName + ".txt");
+				resFile = new File("src\\com\\g10\\portfolio1\\resources\\server\\" + clientName);
 				writeFile = new PrintWriter(resFile);
 				
 				readList = new ArrayList<>();

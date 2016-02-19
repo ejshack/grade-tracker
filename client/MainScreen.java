@@ -26,6 +26,7 @@ import javax.swing.table.DefaultTableModel;
 
 public class MainScreen extends JFrame {
 
+	private static final long serialVersionUID = 7858149595584813037L;
 	private JPanel contentPane;
 	private JComboBox<String> semesterCB;
 	private JComboBox<String> courseCB;

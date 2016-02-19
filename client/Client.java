@@ -3,6 +3,9 @@ package com.g10.portfolio1.client;
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import javax.swing.JOptionPane;
 
@@ -43,7 +46,9 @@ public class Client {
 		
 		// Create temp file, prefix must be at least 3 letters long so append "temp" either way
 		try {
-			tempFile = File.createTempFile(loginStatus.getName()+"temp", ".tmp");
+			Path temp = Files.createTempDirectory(
+					Paths.get("src\\com\\g10\\portfolio1\\resources\\client"), loginStatus.getName());
+			tempFile = new File(temp.toString());
 			tempFile.deleteOnExit();
 			loginStatus.setUserTemp(tempFile);
 		} catch (IOException e) {

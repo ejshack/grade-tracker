@@ -1,6 +1,7 @@
 package com.g10.portfolio1.server;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
@@ -19,7 +20,6 @@ public class ServerTransferListener implements Runnable {
 	// Socket used to pass resource file to client
 	ServerSocket serverSocket;
 	Socket clientSocket;
-	File resfile;
 	
 	ServerTransferListener() {
 		serverSocket = null;
@@ -58,7 +58,7 @@ public class ServerTransferListener implements Runnable {
 class ServerTransferHandler implements Runnable {
 	
 	Socket clientSocket;
-	File resFile;
+	File resFolder;
 	// Stops thread when file send is complete
 	private boolean sendComplete;
 	
@@ -84,15 +84,16 @@ class ServerTransferHandler implements Runnable {
 				System.out.println("Listening for name");
 				clientName = in.nextLine();
 				System.out.println("Client name received");
-				resFile = new File("src\\com\\g10\\portfolio1\\resources\\server\\" + clientName + ".txt");
+				resFolder = new File("src\\com\\g10\\portfolio1\\resources\\server\\" + clientName);
 				
-				readFile = new Scanner(resFile);
+				readFile = new Scanner(resFolder);
 				sendFile = new PrintWriter(clientSocket.getOutputStream());
-				// Read and send entire file line by line
-				while(readFile.hasNextLine()) {
-					sendFile.println(readFile.nextLine());
-				}
-				sendFile.println("<FILESENT>");
+
+				// send all files in resource folder
+				sendFiles(resFolder, sendFile);		
+				
+				// let client know all files have been sent
+				sendFile.println("<COMPLETE>");
 				sendFile.flush();
 			} catch(IOException e) {
 				e.printStackTrace();
@@ -101,5 +102,47 @@ class ServerTransferHandler implements Runnable {
 				readFile.close();
 			}
 		}
+	}
+	
+	/**
+	 * Sends contents of resource folder to client.
+	 */
+	private static void sendFiles(File resFolder, PrintWriter pw) {
+		
+		// get semesters
+		File[] semestersAndCourses = resFolder.listFiles();
+		PrintWriter sendFile = pw;
+		
+	    for (File file : semestersAndCourses) {
+	        if (file.isDirectory()) {
+	        	// send semester tag and name
+		    	sendFile.println("<SEMESTER>");
+		    	sendFile.println(file.getName());
+		    	sendFile.flush();
+	        	
+	            sendFiles(file, sendFile);
+	        } else {
+	        	// send course tag and parent file
+	        	sendFile.println("<COURSE>");
+	        	sendFile.println(file.getName());
+	        	sendFile.println(file.getParentFile().getName());
+	        	
+	        	// send file contents
+	        	Scanner readFile = null;
+	        	try {
+					readFile = new Scanner(file);
+					while(readFile.hasNextLine()) {
+						sendFile.println(readFile.nextLine());
+					}
+					sendFile.println("<FILESENT>");
+				} catch (FileNotFoundException e) {
+					sendFile.println("<ERROR>");
+					e.printStackTrace();
+				} finally {
+		        	sendFile.flush();
+		        	readFile.close();
+				}
+	        }
+	    }
 	}
 }

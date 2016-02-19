@@ -1,10 +1,11 @@
 package com.g10.portfolio1.server;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -98,9 +99,6 @@ class LoginHandler implements Runnable {
 				in = new Scanner(s.getInputStream());
 				name = in.nextLine();
 				pass = in.nextLine();
-	
-				System.out.println(name);
-				System.out.println(pass);
 				
 				// validates user credentials and returns response
 				loginStatus = validateUser();
@@ -187,8 +185,7 @@ class LoginHandler implements Runnable {
 		
 		try {
 			// creates resource file for user if not already created
-			File userRes = new File("src\\com\\g10\\portfolio1\\resources\\server\\" + name + ".txt");
-			userRes.createNewFile();
+			Files.createDirectory(Paths.get("src\\com\\g10\\portfolio1\\resources\\server\\" + name));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
