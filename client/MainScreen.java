@@ -1,6 +1,7 @@
 package com.g10.portfolio1.client;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
@@ -21,6 +22,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
@@ -33,9 +35,15 @@ public class MainScreen extends JFrame {
 	private DefaultComboBoxModel<String> courseCBModel;
 	private JTable assignTable;
 	private DefaultTableModel tableModel;
-	
-	//Key - semester, Value - list of courses
+
+	private JButton editRow;
+
+	// Key - semester, Value - list of courses
 	private HashMap<String, ArrayList<String>> hmSemCourses;
+
+	private HashMap<String, DefaultTableModel> hmCourseAssign;
+
+	private final String[] tableHeaders = { "Title", "Category", "Date", "Points Earned", "Points Possible" };
 
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -69,48 +77,118 @@ public class MainScreen extends JFrame {
 
 	}
 
+	// returns panel with assignment view components
 	private JPanel getAssignmentPanel() {
-		
+
 		JPanel assignPanel = new JPanel();
-		assignPanel.setLayout(new BorderLayout());		
+		assignPanel.setLayout(new BorderLayout());
 		assignPanel.add(new JLabel("<html><p>Assignments:</p></html>"), BorderLayout.PAGE_START);
-		
+
 		tableModel = createTableModel();
 		assignTable = new JTable(tableModel);
-		
+		assignTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+		// Make the JTable scrollable
 		JScrollPane tableScroll = new JScrollPane(assignTable);
-		
+
 		assignPanel.add(tableScroll);
-		
+
 		assignPanel.add(getAssignmentButtonsPanel(), BorderLayout.PAGE_END);
 		assignTable.setEnabled(false);
-		
+
+		getAssignments();
+
 		return assignPanel;
 	}
 
+	private void getAssignments() {
+		hmCourseAssign = new HashMap<>();
+
+	}
+
+	// Return a panel with the add, edit, and remove buttons
 	private JPanel getAssignmentButtonsPanel() {
-		
+
 		JPanel assignBP = new JPanel();
 		assignBP.setLayout(new FlowLayout());
-		
-		JButton addAssign = new JButton("Add assignment");
-		JButton editAssign = new JButton("Edit assignment");
-		JButton remAssign = new JButton("Remove assignment");
-		
-		//Add listeners for each button
-		
-		assignBP.add(addAssign);
-		assignBP.add(editAssign);
-		assignBP.add(remAssign);
-		
+
+		JButton addRow = new JButton("Add row");
+		editRow = new JButton("Edit table");
+		JButton remRow = new JButton("Remove row");
+
+		// Add listeners for each button
+		addRow.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if ((courseCBModel.getSelectedItem() != null) && !(courseCBModel.getSelectedItem().equals(""))) {
+					String[] row = { "", "", "", "", "" };
+					hmCourseAssign.get(courseCBModel.getSelectedItem()).addRow(row);
+					tableModel = hmCourseAssign.get(courseCBModel.getSelectedItem());
+					assignTable.setModel(tableModel);
+				}
+			}
+		});
+
+		remRow.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if ((courseCBModel.getSelectedItem() != null) && !(courseCBModel.getSelectedItem().equals(""))) {
+					tableModel = hmCourseAssign.get(courseCBModel.getSelectedItem());
+					assignTable.setModel(tableModel);
+					if (tableModel.getRowCount() != 0) {
+						tableModel.removeRow(tableModel.getRowCount() - 1);
+					}
+				}
+			}
+		});
+
+		editRow.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if ((courseCBModel.getSelectedItem() != null) && !(courseCBModel.getSelectedItem().equals(""))) {
+					String label = editRow.getText();
+					if (label.equals("Edit table")) {
+						tableModel = hmCourseAssign.get(courseCBModel.getSelectedItem());
+						assignTable.setModel(tableModel);
+						assignTable.setEnabled(true);
+						assignTable.changeSelection(0, 1, false, false);
+						editRow.setText("Lock table");
+
+						// Disable CB's
+						courseCB.setEnabled(false);
+						semesterCB.setEnabled(false);
+					}
+					// Lock the table, send info to server
+					else {
+						tableModel = hmCourseAssign.get(courseCBModel.getSelectedItem());
+						assignTable.setModel(tableModel);
+						saveToServer();
+						assignTable.clearSelection();
+						assignTable.setEnabled(false);
+						editRow.setText("Edit table");
+
+						// Enable CB's
+						courseCB.setEnabled(true);
+						semesterCB.setEnabled(true);
+					}
+				}
+			}
+		});
+
+		assignBP.add(addRow);
+		assignBP.add(editRow);
+		assignBP.add(remRow);
+
 		return assignBP;
 	}
 
 	private DefaultTableModel createTableModel() {
 		DefaultTableModel tm;
-		String[] colHeaders = {"Title", "Category", "Date",  "Points Earned", "Points Possible"};		
-		tm = new DefaultTableModel(colHeaders, 10);
-		
+		tm = new DefaultTableModel(tableHeaders, 10);
+
 		return tm;
 	}
 
@@ -136,36 +214,83 @@ public class MainScreen extends JFrame {
 		JButton remCourseButton = new JButton("Remove course");
 
 		// Add action listeners
-		//Set add semester button functionality
+		// Set add semester button functionality
 		addSemesterButton.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String response = JOptionPane.showInputDialog(null, "What is the new semester?", "Enter new semester",
-						JOptionPane.QUESTION_MESSAGE);
-				if ((response != null) && !(response.equals(""))) {
-					hmSemCourses.put(response, new ArrayList<>());
-					semCBModel.addElement(response);
-					courseCB.setEnabled(true);
-					semCBModel.setSelectedItem(response);
+				if (editRow.getText().equals("Edit table")) {
+					String response = JOptionPane.showInputDialog(null, "What is the new semester?",
+							"Enter new semester", JOptionPane.QUESTION_MESSAGE);
+					if ((response != null) && !(response.equals(""))) {
+						hmSemCourses.put(response, new ArrayList<>());
+						semCBModel.addElement(response);
+						courseCB.setEnabled(true);
+						semCBModel.setSelectedItem(response);
+					}
 				}
 			}
 		});
 
-		//Set remove semester button functionality
+		// Set remove semester button functionality
 		remSemesterButton.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (semCBModel.getSize() != 0) {
-					semCBModel.removeElementAt(semesterCB.getSelectedIndex());
-					
-					hmSemCourses.remove(semesterCB.getSelectedItem());
-					
-					if (semCBModel.getSize() == 0) {
-						courseCBModel = new DefaultComboBoxModel<>();
-						courseCB.setModel(courseCBModel);
-						courseCB.setEnabled(false);
+				if (editRow.getText().equals("Edit table")) {
+					if (semCBModel.getSize() != 0) {
+						semCBModel.removeElementAt(semesterCB.getSelectedIndex());
+
+						hmSemCourses.remove(semesterCB.getSelectedItem());
+
+						if (semCBModel.getSize() == 0) {
+							courseCBModel = new DefaultComboBoxModel<>();
+							courseCB.setModel(courseCBModel);
+							courseCB.setEnabled(false);
+							assignTable.clearSelection();
+							assignTable.setEnabled(false);
+						}
+					}
+				}
+			}
+		});
+
+		addCourseButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (editRow.getText().equals("Edit table")) {
+					if (courseCB.isEnabled()) {
+						String response = JOptionPane.showInputDialog(null, "What is the new course?",
+								"Enter new course", JOptionPane.QUESTION_MESSAGE);
+						if ((response != null) && !(response.equals(""))) {
+							hmSemCourses.get(semCBModel.getSelectedItem()).add(response);
+							courseCBModel.addElement(response);
+							courseCB.setModel(courseCBModel);
+							courseCBModel.setSelectedItem(response);
+
+							hmCourseAssign.put(response, createTableModel());
+							assignTable.setModel(hmCourseAssign.get(response));
+						}
+					}
+				}
+			}
+		});
+
+		// Set remove semester button functionality
+		remCourseButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (editRow.getText().equals("Edit table")) {
+					if (courseCBModel.getSize() != 0) {
+						hmSemCourses.get(semesterCB.getSelectedItem()).remove(semesterCB.getSelectedIndex());
+						courseCBModel.removeElementAt(courseCB.getSelectedIndex());
+
+						hmCourseAssign.remove(courseCB.getSelectedItem());
+					} else {
+						hmCourseAssign = new HashMap<>();
+
 						assignTable.clearSelection();
 						assignTable.setEnabled(false);
 					}
@@ -173,41 +298,8 @@ public class MainScreen extends JFrame {
 			}
 		});
 
-		addCourseButton.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if(courseCB.isEnabled()) {
-					String response = JOptionPane.showInputDialog(null, "What is the new course?", "Enter new course",
-							JOptionPane.QUESTION_MESSAGE);
-					if ((response != null) && !(response.equals(""))) {
-						hmSemCourses.get(semCBModel.getSelectedItem()).add(response);
-						courseCBModel.addElement(response);
-						courseCB.setModel(courseCBModel);
-						courseCBModel.setSelectedItem(response);
-						assignTable.setEnabled(true);
-					}
-				}
-			}
-		});
-		
-		//Set remove semester button functionality
-		remCourseButton.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (courseCBModel.getSize() != 0) {
-					hmSemCourses.get(semesterCB.getSelectedItem()).remove(semesterCB.getSelectedIndex());
-					courseCBModel.removeElementAt(courseCB.getSelectedIndex());
-				} else {
-					assignTable.clearSelection();
-					assignTable.setEnabled(false);
-				}
-			}
-		});
-		
 		getSemAndCourses();
-		
+
 		// Add to button panel
 		buttonsPanel.add(addSemesterButton);
 		buttonsPanel.add(remSemesterButton);
@@ -219,18 +311,24 @@ public class MainScreen extends JFrame {
 
 	private void getSemAndCourses() {
 		hmSemCourses = new HashMap<>();
-		
-		//Get semester and course information from server
-		//TODO server calls
-		
+
+		// Get semester and course information from server
+		// TODO server calls
+
+	}
+
+	private void saveToServer() {
+		// Save all semesters, courses, and assignments
+		// TODO server
+
 	}
 
 	private JPanel getCourseSelectorPanel() {
 
 		JPanel selectorPanel = new JPanel();
 		selectorPanel.setLayout(new BoxLayout(selectorPanel, BoxLayout.X_AXIS));
-		
-		//Call server for info
+
+		// Call server for info
 		semCBModel = new DefaultComboBoxModel<>();
 		courseCBModel = new DefaultComboBoxModel<>();
 
@@ -248,11 +346,11 @@ public class MainScreen extends JFrame {
 			semCBModel.addElement(element);
 
 		semesterCB.addItemListener(new ItemListener() {
-			
+
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				String semester = (String) semesterCB.getSelectedItem();
-				if(semester != null) {
+				if (semester != null) {
 					ArrayList<String> courses = hmSemCourses.get(semester);
 					courseCBModel = new DefaultComboBoxModel<>(courses.toArray(new String[courses.size()]));
 				} else {
@@ -262,20 +360,25 @@ public class MainScreen extends JFrame {
 				courseCB.setModel(courseCBModel);
 			}
 		});
-		
+
 		courseCB.addItemListener(new ItemListener() {
-			
+
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				String course = (String) courseCB.getSelectedItem();
-				if(course != null) {
-					//load assignment information
-					//TODO
+				if (course != null) {
+					// load assignment information
+					DefaultTableModel tm = hmCourseAssign.get(course);
+					if (tm == null) {
+						tm = new DefaultTableModel();
+					}
+					tableModel = tm;
+					assignTable.setModel(tableModel);
 				} else {
 					assignTable.clearSelection();
 					assignTable.setEnabled(false);
 				}
-					
+
 			}
 		});
 
