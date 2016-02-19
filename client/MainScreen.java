@@ -2,7 +2,6 @@ package com.g10.portfolio1.client;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -13,6 +12,8 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Scanner;
+import java.util.Vector;
 
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
@@ -37,24 +38,25 @@ public class MainScreen extends JFrame {
 	private DefaultComboBoxModel<String> courseCBModel;
 	private JTable assignTable;
 	private DefaultTableModel tableModel;
+	private String username;
+	private LoginStatus loginStatus;
+	// for requesting info from server
+	private Socket receiveSocket;
+	// to save progress to server
+	private Socket sendSocket;
 	
-	//Key - semester, Value - list of courses
+	// Key - semester, Value - list of courses
 	private HashMap<String, ArrayList<String>> hmSemCourses;
+	// Key - course, Value - assignments (DefaultTableModel)
+	private HashMap<String, DefaultTableModel> hmCourseAssign;
 
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					MainScreen frame = new MainScreen();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
-
-	public MainScreen() {
+	public MainScreen(LoginStatus ls) {
+		// get user information
+		loginStatus = ls;
+		username = loginStatus.getName();
+		// create connections to server for requesting and saving files
+		connect();
+		
 		// Set Frame and main panel to contentPane
 		setTitle("Grade Tracker | Main");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -225,23 +227,48 @@ public class MainScreen extends JFrame {
 		
 		hmSemCourses = new HashMap<>();
 		
-		Socket socket;
 		PrintWriter out;
+		Scanner in = null;
 		
 		//Get semester and course information from server
 		try {
-			socket = new Socket("localhost", 4445);
-			Thread.sleep(1000);
-			out = new PrintWriter(socket.getOutputStream());
+			// get output and input stream
+			out = new PrintWriter(receiveSocket.getOutputStream());
+			in = new Scanner(receiveSocket.getInputStream());
 			
 			// send type of request to server
 			out.println("<LIST>");
+			out.println(username);
+			out.flush();
 			
 		} catch (IOException e) {
-			System.out.println("Problems establishing connection to server for resource files...");
 			e.printStackTrace();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+		}
+		
+		String readStream = in.nextLine();
+		String semester;
+		ArrayList<String> courses = new ArrayList<>();
+		
+		// leave empty hash-map if no semesters
+		if(readStream.equals("<COMPLETE>")) {
+			return;
+		}
+		
+		// keep reading contents until complete
+		while(!readStream.equals("<COMPLETE>")) {
+			
+			semester = readStream;
+			readStream = in.nextLine();
+			
+			// get all courses for semester
+			while(!readStream.equals("<ENDSEMESTER>")) {
+				courses.add(readStream);
+				readStream = in.nextLine();
+			}
+			// add semester and courses
+			hmSemCourses.put(semester, courses);
+			// check next semester or completion tag
+			readStream = in.nextLine();
 		}
 	}
 
@@ -290,7 +317,7 @@ public class MainScreen extends JFrame {
 				String course = (String) courseCB.getSelectedItem();
 				if(course != null) {
 					//load assignment information
-					//TODO
+					getAssignments();
 				} else {
 					assignTable.clearSelection();
 					assignTable.setEnabled(false);
@@ -307,6 +334,76 @@ public class MainScreen extends JFrame {
 		selectorPanel.setMaximumSize(new Dimension(selectorPanel.getMaximumSize().width, 30));
 
 		return selectorPanel;
+	}
+	
+	/**
+	 * Get assignment info from server
+	 */
+	private void getAssignments() {
+		
+		Scanner in = null;
+		
+		try {
+			PrintWriter out = new PrintWriter(sendSocket.getOutputStream());
+			in = new Scanner(receiveSocket.getInputStream());
+			
+			// send type of request to server
+			out.println("<ASSIGNMENT>");
+			out.println(username);
+			// get semester and course
+			String semester = semCBModel.getSelectedItem().toString();
+			String course = courseCBModel.getSelectedItem().toString();
+			out.println(semester);
+			out.println(course);
+			out.flush();
+			
+			String fileLine = in.nextLine();
+			Scanner scanLine = null;
+			
+			while(!fileLine.equals("<COMPLETE>")) {
+				
+				if(fileLine.equals("<ERROR>")) {
+					JOptionPane.showMessageDialog(null, "Error receiving course information. Please try again.", 
+							"Retrieve Course Error",  JOptionPane.ERROR_MESSAGE);
+				} else {
+					DefaultTableModel tm = createTableModel();
+					Vector<String> row = new Vector<>();
+					// parse line, add to vector, add to table model
+					scanLine = new Scanner(fileLine);
+					scanLine.useDelimiter(",");
+					String cell;
+					while(scanLine.hasNext()) {
+						cell = scanLine.next();
+						row.add(cell);
+					}
+					tm.addRow(row);
+				}
+			}
+			scanLine.close();
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void connect() {
+		
+		// connect to port for receiving info from server
+		try {
+			receiveSocket = new Socket("localhost", 4445);
+			System.out.println("Receive connection established...");
+		} catch (IOException e) {
+			System.out.println("Receive connection error on 4445...");
+			e.printStackTrace();
+		}
+		// connect to port for saving info to server
+		try {
+			sendSocket = new Socket("localhost", 4446);
+			System.out.println("Send connection established...");
+		} catch (IOException e) {
+			System.out.println("Send connection error on 4446...");
+			e.printStackTrace();
+		}
 	}
 
 }

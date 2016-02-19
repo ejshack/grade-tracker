@@ -69,37 +69,46 @@ class ServerTransferHandler implements Runnable {
 	
 	public void run() {
 		
+		// input from client
 		Scanner in;
 		String clientName;
+		
 		// Stop thread when complete file is sent
 		if(!sendComplete) {
-			// Scanners to read file
-//			Scanner readFile = null;
-			// PrintWriter to send file
+			// PrintWriter to send sem, course, and assignment info
 			PrintWriter sendFile;
 						
 			try {
 				in = new Scanner(clientSocket.getInputStream());
-				// Get client name first and get resource file
-				System.out.println("Listening for name");
-				clientName = in.nextLine();
-				System.out.println("Client name received");
-				resFolder = new File("src\\com\\g10\\portfolio1\\resources\\server\\" + clientName);
-				
-//				readFile = new Scanner(resFolder);
 				sendFile = new PrintWriter(clientSocket.getOutputStream());
-
-				// send all files in resource folder
-				sendFiles(resFolder, sendFile);		
 				
-				// let client know all files have been sent
-				sendFile.println("<COMPLETE>");
-				sendFile.flush();
+				String request = in.nextLine();
+				
+				if(request.equals("<LIST>")) {
+					// Get client name first and get resource file
+					clientName = in.nextLine();
+					resFolder = new File("src\\com\\g10\\portfolio1\\resources\\server\\" + clientName);
+					
+					// send all files in resource folder
+					sendFiles(resFolder, sendFile);	
+					// let client know all files have been sent
+					sendFile.println("<COMPLETE>");
+					sendFile.flush();
+					
+				} else if(request.equals("<ASSIGNMENT>")) {
+					
+					clientName = in.nextLine();
+					resFolder = new File("src\\com\\g10\\portfolio1\\resources\\server\\" + clientName);
+					String semester = in.nextLine();
+					String course = in.nextLine();
+					
+					sendAssignment(resFolder, sendFile, semester, course);
+				}
+
 			} catch(IOException e) {
 				e.printStackTrace();
 			} finally {
 				sendComplete = true;
-//				readFile.close();
 			}
 		}
 	}
@@ -116,33 +125,46 @@ class ServerTransferHandler implements Runnable {
 	    for (File file : semestersAndCourses) {
 	        if (file.isDirectory()) {
 	        	// send semester tag and name
-		    	sendFile.println("<SEMESTER>");
 		    	sendFile.println(file.getName());
 		    	sendFile.flush();
 	        	
 	            sendFiles(file, sendFile);
+	            
 	        } else {
 	        	// send course tag and parent file
-	        	sendFile.println("<COURSE>");
 	        	sendFile.println(file.getName());
-	        	sendFile.println(file.getParentFile().getName());
+	        	sendFile.flush();
+	        }
+	    }
+	    sendFile.println("<ENDSEMESTER>");
+	}
+	
+	private static void sendAssignment(File resFolder, PrintWriter pw, String sem, String crse) {
+		
+		// get semesters
+		File[] semesters = resFolder.listFiles();
+		PrintWriter sendFile = pw;
+		
+	    for (File file : semesters) {
+	        if (file.getName().equals(crse)) {
 	        	
 	        	// send file contents
 	        	Scanner readFile = null;
 	        	try {
-					readFile = new Scanner(file);
-					while(readFile.hasNextLine()) {
-						sendFile.println(readFile.nextLine());
-					}
-					sendFile.println("<FILESENT>");
-				} catch (FileNotFoundException e) {
-					sendFile.println("<ERROR>");
-					e.printStackTrace();
-				} finally {
-		        	sendFile.flush();
-		        	readFile.close();
-				}
+	    			readFile = new Scanner(file);
+	    			while(readFile.hasNextLine()) {
+	    				sendFile.println(readFile.nextLine());
+	    			}
+	    			sendFile.println("<COMPLETE>");
+	    		} catch (FileNotFoundException e) {
+	    			sendFile.println("<ERROR>");
+	    			e.printStackTrace();
+	    		} finally {
+	            	sendFile.flush();
+	            	readFile.close();
+	    		}
 	        }
 	    }
+    	
 	}
 }

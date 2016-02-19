@@ -28,7 +28,7 @@ public class ClientLogin {
 	private String name;
 	private char[] pass;
 	private String loginStatus = "REJECTED";
-	Socket socket;
+	private Socket socket;
 	private boolean connected;
 	private JFrame frame;
 	private LoginStatus lStatus;
@@ -38,10 +38,10 @@ public class ClientLogin {
 	 * @param s
 	 *   socket for connecting to server
 	 */
-	public ClientLogin(Socket s, LoginStatus l) {
+	public ClientLogin(LoginStatus l) {
 
-		socket = s;
 		lStatus = l;
+		socket = l.getLoginSocket();
 		
 		frame = setupGUI();
 		frame.setVisible(true);

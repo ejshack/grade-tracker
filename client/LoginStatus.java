@@ -1,6 +1,6 @@
 package com.g10.portfolio1.client;
 
-import java.io.File;
+import java.net.Socket;
 
 /**
  * Contains information to be shared
@@ -15,8 +15,8 @@ public class LoginStatus {
 	private boolean newClient = true;
 	// The name of the client
 	private String clientName;
-	// The client's temp file stored on client machine
-	private File tempFile;
+	// The client's login socket to authenticate with server
+	private Socket loginSocket;
 	
 	synchronized public boolean getStatus() {
 		return status;
@@ -42,11 +42,11 @@ public class LoginStatus {
 		clientName = name;
 	}
 	
-	synchronized public File getUserTemp() {
-		return tempFile;
+	synchronized public Socket getLoginSocket() {
+		return loginSocket;
 	}
 	
-	synchronized public void setUserTemp(File t) {
-		tempFile = t;
+	synchronized public void setLoginSocket(Socket s) {
+		loginSocket = s;
 	}
 }

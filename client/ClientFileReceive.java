@@ -107,7 +107,7 @@ public class ClientFileReceive implements Runnable {
 					// add semester directory
 					if(input.equals("<SEMESTER>")) {
 						// get semester name
-						String semester = readStream.nextLine();
+//						String semester = readStream.nextLine();
 					
 	//					// create directory for semester
 	//					Path temp = Files.createTempDirectory(
@@ -115,9 +115,9 @@ public class ClientFileReceive implements Runnable {
 	//									+tempFile.getName()), semester);
 						
 						// create reference
-						File semFile = new File(temp.toString());
-						semFile.deleteOnExit();
-						semesterFiles.put(semester, semFile);
+//						File semFile = new File(temp.toString());
+//						semFile.deleteOnExit();
+//						semesterFiles.put(semester, semFile);
 						
 					} else if(input.equals("<COURSE>")) {
 	
@@ -162,5 +162,5 @@ public class ClientFileReceive implements Runnable {
 					readStream.close();
 				}
 			}
-		}
+//		}
 }
