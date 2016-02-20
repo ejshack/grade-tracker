@@ -74,7 +74,7 @@ class ServerTransferHandler implements Runnable {
 		String clientName;
 		
 		// Stop thread when complete file is sent
-		if(!sendComplete) {
+		while(!sendComplete) {
 			// PrintWriter to send sem, course, and assignment info
 			PrintWriter sendFile;
 						
@@ -101,14 +101,15 @@ class ServerTransferHandler implements Runnable {
 					resFolder = new File("src\\com\\g10\\portfolio1\\resources\\server\\" + clientName);
 					String semester = in.nextLine();
 					String course = in.nextLine();
-					
+
 					sendAssignment(resFolder, sendFile, semester, course);
 				}
 
 			} catch(IOException e) {
 				e.printStackTrace();
 			} finally {
-				sendComplete = true;
+				if(clientSocket.isClosed())
+					sendComplete = true;
 			}
 		}
 	}
@@ -145,25 +146,29 @@ class ServerTransferHandler implements Runnable {
 		File[] semesters = resFolder.listFiles();
 		PrintWriter sendFile = pw;
 		
-	    for (File file : semesters) {
-	        if (file.getName().equals(crse)) {
-	        	
-	        	// send file contents
-	        	Scanner readFile = null;
-	        	try {
-	    			readFile = new Scanner(file);
-	    			while(readFile.hasNextLine()) {
-	    				sendFile.println(readFile.nextLine());
-	    			}
-	    			sendFile.println("<COMPLETE>");
-	    		} catch (FileNotFoundException e) {
-	    			sendFile.println("<ERROR>");
-	    			e.printStackTrace();
-	    		} finally {
-	            	sendFile.flush();
-	            	readFile.close();
-	    		}
-	        }
+	    for (File semDir : semesters) {
+	    	// get courses of semester
+	    	File[] courses = semDir.listFiles();
+	    	for(File course : courses) {
+		        if (course.getName().equals(crse)) {
+		        	
+		        	// send file contents
+		        	Scanner readFile = null;
+		        	try {
+		    			readFile = new Scanner(course);
+		    			while(readFile.hasNextLine()) {
+		    				sendFile.println(readFile.nextLine());
+		    			}
+		    			sendFile.println("<COMPLETE>");
+		    		} catch (FileNotFoundException e) {
+		    			sendFile.println("<ERROR>");
+		    			e.printStackTrace();
+		    		} finally {
+		            	sendFile.flush();
+		            	readFile.close();
+		    		}
+		        }
+	    	}
 	    }
     	
 	}

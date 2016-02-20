@@ -97,7 +97,7 @@ public class MainScreen extends JFrame {
 		assignPanel.add(getAssignmentButtonsPanel(), BorderLayout.PAGE_END);
 		assignTable.setEnabled(false);
 
-		getAssignments();
+		//getAssignments();
 
 		return assignPanel;
 	}
@@ -467,11 +467,14 @@ public class MainScreen extends JFrame {
 			out.flush();
 			
 			String fileLine = in.nextLine();
+			
 			Scanner scanLine = null;
 			DefaultTableModel tm = createTableModel();
 			
+			int i = 1;
 			while(!fileLine.equals("<COMPLETE>")) {
-				
+				if(i++==1)
+					tm = new DefaultTableModel(tableHeaders, 0);
 				if(fileLine.equals("<ERROR>")) {
 					JOptionPane.showMessageDialog(null, "Error receiving course information. Please try again.", 
 							"Retrieve Course Error",  JOptionPane.ERROR_MESSAGE);
@@ -486,6 +489,7 @@ public class MainScreen extends JFrame {
 						row.add(cell);
 					}
 					tm.addRow(row);
+					fileLine = in.nextLine();
 				}
 			}
 			hmCourseAssign.put(course, tm);
