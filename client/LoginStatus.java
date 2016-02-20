@@ -17,6 +17,8 @@ public class LoginStatus {
 	private String clientName;
 	// The client's login socket to authenticate with server
 	private Socket loginSocket;
+	// Client's send to server socket
+	private Socket sendSocket;
 	
 	synchronized public boolean getStatus() {
 		return status;
@@ -48,5 +50,13 @@ public class LoginStatus {
 	
 	synchronized public void setLoginSocket(Socket s) {
 		loginSocket = s;
+	}
+	
+	synchronized public Socket getSendSocket() {
+		return sendSocket;
+	}
+	
+	synchronized public void setSendSocket(Socket s) {
+		sendSocket = s;
 	}
 }

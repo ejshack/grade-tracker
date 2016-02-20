@@ -356,10 +356,41 @@ public class MainScreen extends JFrame {
 
 	private void saveToServer() {
 
-		// Save all semesters, courses, and assignments
+		// Save all semesters, courses, and assignments	
+		DefaultTableModel tm = hmCourseAssign.get(courseCBModel.getSelectedItem());
+		int numRows = tm.getRowCount();
+		int numCol = tableHeaders.length;
+		ArrayList<String> rowList = new ArrayList<>();
+		StringBuilder row;
 		
-		// TODO server
-
+		for(int i = 0; i < numRows; ++i) {
+			row = new StringBuilder();
+			for(int j = 0; j < numCol; ++j) {
+				
+				if(j == (numCol-1))
+					row.append(tm.getValueAt(i, j).toString());
+				else
+					row.append(tm.getValueAt(i, j).toString() + ',');
+					
+			}
+			rowList.add(row.toString());
+		}
+		
+		try {
+			PrintWriter out = new PrintWriter(sendSocket.getOutputStream());
+			out.println(username);
+			out.println(semCBModel.getSelectedItem());
+			out.println(courseCBModel.getSelectedItem());
+			out.flush();
+			for(String s : rowList) {
+				out.println(s);
+			}
+			out.println("<COMPLETE>");
+			out.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 	private JPanel getCourseSelectorPanel() {
@@ -513,6 +544,7 @@ public class MainScreen extends JFrame {
 		// connect to port for saving info to server
 		try {
 			sendSocket = new Socket("localhost", 4446);
+			loginStatus.setSendSocket(sendSocket);
 			System.out.println("Send connection established...");
 		} catch (IOException e) {
 			System.out.println("Send connection error on 4446...");

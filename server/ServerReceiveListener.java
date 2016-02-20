@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+
 /**
  * Thread to open socket to listen for client connections
  * for receiving resource files. Resource files are saved
@@ -71,7 +72,7 @@ class ServerReceiveHandler implements Runnable {
 	public void run() {
 		
 		// Stop thread when complete file is received
-		if(!receiveComplete) {
+		while(!receiveComplete) {
 			// Scanners to read stream
 			Scanner readStream = null;
 			// PrintWriter to write file
@@ -79,22 +80,24 @@ class ServerReceiveHandler implements Runnable {
 			
 			ArrayList<String> readList;
 			String clientName;
+			String semester;
+			String course;
 			int index = 0;
 			
 			try {
 				readStream = new Scanner(clientSocket.getInputStream());
 				// Get client name first and get resource file
-				System.out.println("Listening for name");
 				clientName = readStream.nextLine();
-				System.out.println("Client name received");
+				semester = readStream.nextLine();
+				course = readStream.nextLine();
 				
-				resFile = new File("src\\com\\g10\\portfolio1\\resources\\server\\" + clientName);
+				resFile = new File("src\\com\\g10\\portfolio1\\resources\\server\\" + clientName + semester + course + ".csv");
 				writeFile = new PrintWriter(resFile);
 				
 				readList = new ArrayList<>();
 				readList.add(readStream.nextLine());
 				
-				while(!readList.get(index).equals("<FILESENT>")) {
+				while(!readList.get(index).equals("<COMPLETE>")) {
 					readList.add(readStream.nextLine());
 					System.out.println(readList.get(index));
 					++index;
@@ -110,9 +113,11 @@ class ServerReceiveHandler implements Runnable {
 			} catch(IOException e) {
 				e.printStackTrace();
 			} finally {
-				receiveComplete = true;
-				readStream.close();
-				writeFile.close();
+				if(clientSocket.isClosed()) {
+					receiveComplete = true;
+					readStream.close();
+					writeFile.close();
+				}
 			}
 		}
 	}

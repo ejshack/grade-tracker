@@ -8,13 +8,13 @@ import java.util.Scanner;
 
 public class ClientFileSend implements Runnable {
 	
-	Socket socket = null;
-	File tempFile;
-	String clientName;
+	private String clientName;
+	private LoginStatus loginStatus;
+	private Socket socket;
 	// Stops thread when file send is complete
 	private boolean sendComplete;
 	
-	public ClientFileSend(File f, String name) {
+	public ClientFileSend(LoginStatus status) {
 		
 		try {
 			socket = new Socket("localhost", 4446);
@@ -22,13 +22,11 @@ public class ClientFileSend implements Runnable {
 			System.out.println("Problems establishing connection to server to send resource file...");
 			e.printStackTrace();
 		}
-		tempFile = f;
-		clientName = name;
+		clientName = loginStatus.getName();
 		sendComplete = false;
 	}
 	
 	public void run() {
-		System.out.println(tempFile.getAbsolutePath());
 		// Stop thread when complete file is sent
 		if(!sendComplete) {
 			// Scanners to read file
