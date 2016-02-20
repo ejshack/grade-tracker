@@ -2,8 +2,6 @@ package com.g10.portfolio1.server;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -86,16 +84,12 @@ class UserListModel extends AbstractListModel<String> {
 	synchronized public String removeElement (int index) {
 		String userRemoved = userList.remove(index);
 		this.fireIntervalRemoved(this, userList.size()-1, userList.size()-1);
-//		try {
+		
 		// deletes user folder and all subcontents
 		File userFolder = new File("src\\com\\g10\\portfolio1\\resources\\server\\" + userRemoved);
 		removeUserFolder(userFolder);
 		userFolder.delete();
-//			Files.deleteIfExists(Paths.get("src\\com\\g10\\portfolio1\\resources\\server\\" + userRemoved));
-//		} catch (IOException e) {
-//			System.out.println("User: " + userRemoved + " resource folder not found. Could not be removed.");
-//			e.printStackTrace();
-//		}
+		
 		return userRemoved;
 	}
 	

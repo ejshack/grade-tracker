@@ -212,8 +212,6 @@ public class MainScreen extends JFrame {
 			}
 		});
 		
-		getSemAndCourses();
-		
 		// Add to button panel
 		buttonsPanel.add(addSemesterButton);
 		buttonsPanel.add(remSemesterButton);
@@ -261,14 +259,16 @@ public class MainScreen extends JFrame {
 			readStream = in.nextLine();
 			
 			// get all courses for semester
-			while(!readStream.equals("<ENDSEMESTER>")) {
+			while(!readStream.equals("<ENDSEMESTER>") && !readStream.equalsIgnoreCase("<COMPLETE>")) {
 				courses.add(readStream);
 				readStream = in.nextLine();
 			}
 			// add semester and courses
-			hmSemCourses.put(semester, courses);
-			// check next semester or completion tag
-			readStream = in.nextLine();
+			if(!readStream.equals("<COMPLETE>")) {
+				hmSemCourses.put(semester, courses);
+				// check next semester or completion tag
+				readStream = in.nextLine();
+			}
 		}
 	}
 
@@ -286,10 +286,15 @@ public class MainScreen extends JFrame {
 		JLabel courseLabel = new JLabel("     Course:     ");
 		courseCB = new JComboBox<>(courseCBModel);
 		courseCB.setEnabled(false);
+		
+		getSemAndCourses();
 
 		// Call Server for combo box lists
 		ArrayList<String> semesterList = new ArrayList<>();
-		// semesterList = requestSemesterList();
+		semesterList = requestSemesterList();
+		
+		if(semesterList.size() != 0)
+			courseCB.setEnabled(true);
 
 		for (String element : semesterList)
 			semCBModel.addElement(element);
@@ -336,6 +341,11 @@ public class MainScreen extends JFrame {
 		return selectorPanel;
 	}
 	
+	private ArrayList<String> requestSemesterList() {
+		
+		return new ArrayList<String>(hmSemCourses.keySet());
+	}
+
 	/**
 	 * Get assignment info from server
 	 */
@@ -344,7 +354,7 @@ public class MainScreen extends JFrame {
 		Scanner in = null;
 		
 		try {
-			PrintWriter out = new PrintWriter(sendSocket.getOutputStream());
+			PrintWriter out = new PrintWriter(receiveSocket.getOutputStream());
 			in = new Scanner(receiveSocket.getInputStream());
 			
 			// send type of request to server
@@ -359,6 +369,7 @@ public class MainScreen extends JFrame {
 			
 			String fileLine = in.nextLine();
 			Scanner scanLine = null;
+			DefaultTableModel tm = createTableModel();
 			
 			while(!fileLine.equals("<COMPLETE>")) {
 				
@@ -366,7 +377,6 @@ public class MainScreen extends JFrame {
 					JOptionPane.showMessageDialog(null, "Error receiving course information. Please try again.", 
 							"Retrieve Course Error",  JOptionPane.ERROR_MESSAGE);
 				} else {
-					DefaultTableModel tm = createTableModel();
 					Vector<String> row = new Vector<>();
 					// parse line, add to vector, add to table model
 					scanLine = new Scanner(fileLine);
@@ -379,6 +389,7 @@ public class MainScreen extends JFrame {
 					tm.addRow(row);
 				}
 			}
+			hmCourseAssign.put(course, tm);
 			scanLine.close();
 			
 		} catch (IOException e) {
