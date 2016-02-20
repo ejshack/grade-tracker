@@ -40,6 +40,8 @@ public class ClientFileSend implements Runnable {
 				writeStream.println(clientName);
 				writeStream.flush();
 				System.out.println("Sent client name");
+				
+				File tempFile = new File("src\\com\\g10\\portfolio1\\resources\\client\\"+clientName);
 	
 				readTemp = new Scanner(tempFile);
 				

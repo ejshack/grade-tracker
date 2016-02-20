@@ -102,7 +102,7 @@ class ServerTransferHandler implements Runnable {
 					String semester = in.nextLine();
 					String course = in.nextLine();
 
-					sendAssignment(resFolder, sendFile, semester, course);
+					sendAssignment(resFolder, sendFile, semester, course+".csv");
 				}
 
 			} catch(IOException e) {
@@ -133,7 +133,8 @@ class ServerTransferHandler implements Runnable {
 	            
 	        } else {
 	        	// send course tag and parent file
-	        	sendFile.println(file.getName());
+	        	String fileName = file.getName();
+	        	sendFile.println(fileName.substring(0, fileName.length()-4));
 	        	sendFile.flush();
 	        }
 	    }

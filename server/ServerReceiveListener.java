@@ -91,7 +91,8 @@ class ServerReceiveHandler implements Runnable {
 				semester = readStream.nextLine();
 				course = readStream.nextLine();
 				
-				resFile = new File("src\\com\\g10\\portfolio1\\resources\\server\\" + clientName + semester + course + ".csv");
+				resFile = new File("src\\com\\g10\\portfolio1\\resources\\server\\" 
+						+ clientName + "\\" + semester + "\\" +  course + ".csv");
 				writeFile = new PrintWriter(resFile);
 				
 				readList = new ArrayList<>();
@@ -109,6 +110,7 @@ class ServerReceiveHandler implements Runnable {
 				for(String s : readList) {
 					writeFile.println(s);
 				}
+				writeFile.flush();
 				
 			} catch(IOException e) {
 				e.printStackTrace();

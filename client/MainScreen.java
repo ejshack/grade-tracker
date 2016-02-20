@@ -343,6 +343,7 @@ public class MainScreen extends JFrame {
 			// get all courses for semester
 			while(!readStream.equals("<ENDSEMESTER>") && !readStream.equalsIgnoreCase("<COMPLETE>")) {
 				courses.add(readStream);
+				//.substring(0, readStream.length()-4));
 				readStream = in.nextLine();
 			}
 			// add semester and courses
@@ -502,10 +503,12 @@ public class MainScreen extends JFrame {
 			Scanner scanLine = null;
 			DefaultTableModel tm = createTableModel();
 			
-			int i = 1;
+			boolean isAssignments = false;
 			while(!fileLine.equals("<COMPLETE>")) {
-				if(i++==1)
+				if(!isAssignments) {
 					tm = new DefaultTableModel(tableHeaders, 0);
+					isAssignments = true;
+				}
 				if(fileLine.equals("<ERROR>")) {
 					JOptionPane.showMessageDialog(null, "Error receiving course information. Please try again.", 
 							"Retrieve Course Error",  JOptionPane.ERROR_MESSAGE);
@@ -523,8 +526,10 @@ public class MainScreen extends JFrame {
 					fileLine = in.nextLine();
 				}
 			}
-			hmCourseAssign.put(course, tm);
-			scanLine.close();
+			if(isAssignments) {
+				hmCourseAssign.put(course, tm);
+				scanLine.close();
+			}
 			
 		} catch (IOException e) {
 			e.printStackTrace();
